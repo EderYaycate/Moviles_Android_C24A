@@ -20,3 +20,21 @@ Programa echo  en  Kotlin que muestra  un carrito de compras. Agrega productos c
 ## Pregunta de reflexión (val vs var)
 
 nombre y precio son val porque mantienen algo fijo o estático, mientras que cantidad es var porque puede cambiar y variar.
+
+
+
+
+
+## Fase 2 - Version POO con polimorfismo
+
+Hice otra version del carrito pero con clases, en CarritoPOO.kt.
+
+La clase producto tiene lo basico y de ahi salen 3 tipos: productoGravado (IGV normal), productoExonerado (sin IGV, como los libros) y productoImportado (IGV mas arancel). Cada uno calcula su impuesto distinto.
+
+La clase carrito guarda los productos y calcula subtotal, IGV, total, descuento y detalle.
+
+El polimorfismo es que cada producto calcula su impuesto a su manera, sin usar if para saber que tipo es.
+
+## Resultado final (version POO)
+
+![img.png](img.png)
