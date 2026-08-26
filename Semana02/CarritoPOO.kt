@@ -24,8 +24,19 @@ class ProductoExonerado(nombre: String, precio: Double, cantidad: Int) : Product
     override fun mostrarInfo(): String {
         return super.mostrarInfo() + "  (exonerado de IGV)"
     }
-}
 
+}
+class ProductoImportado(nombre: String, precio: Double, cantidad: Int) : Producto(nombre, precio, cantidad) {
+    override fun calcularImpuesto(): Double {
+        val igv = calcularImporte() * 0.18
+        val arancel = calcularImporte() * 0.06
+        return igv + arancel
+    }
+
+    override fun mostrarInfo(): String {
+        return super.mostrarInfo() + "  (importado, incluye arancel)"
+    }
+}
 class Carrito {
     private val productos = mutableListOf<Producto>()
 
@@ -79,6 +90,7 @@ fun main() {
     carrito.agregarProducto(ProductoGravado("Mouse Logitech", 45.5, 2))
     carrito.agregarProducto(ProductoGravado("Audifonos Xiomi", 120.0, 1))
     carrito.agregarProducto(ProductoExonerado("Libro Kotlin desde cero", 60.0, 1))
+    carrito.agregarProducto(ProductoImportado("Smartwatch Xiaomi", 350.0, 1))
 
     println()
     carrito.mostrarDetalle()
