@@ -1,3 +1,6 @@
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 val cuotasPermitidas = mapOf(
     6 to 0.20,
     12 to 0.40,
@@ -45,4 +48,25 @@ fun main() {
     println("N de Cuotas     : $cuotas")
     println("Pago Mensual    : S/ ${"%.2f".format(pagoMensual)}")
     println("=========================================")
+
+    println()
+    println("--------- CALENDARIO DE PAGOS ---------")
+    println(String.format("%-4s %-12s %-10s %-10s", "N", "Fecha", "Monto", "Resta"))
+
+    val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    var restaPorPagar = montoAPagar
+    var fecha = LocalDate.now()
+
+    for (i in 1..cuotas) {
+        fecha = fecha.plusMonths(1)
+        restaPorPagar -= pagoMensual
+        val restaMostrada = if (restaPorPagar < 0.01) 0.0 else restaPorPagar
+        println(
+            String.format(
+                "%-4d %-12s S/%-8.2f S/%-8.2f",
+                i, fecha.format(formato), pagoMensual, restaMostrada
+            )
+        )
+    }
+    println("----------------------------------------")
 }
