@@ -34,12 +34,67 @@ val cuotasPermitidas = mapOf(
 
 @Composable
 fun CalculadoraCuotas(modifier: Modifier = Modifier) {
+    val preguntas = listOf(
+        "Ingrese el nombre del producto:",
+        "Ingrese el precio:",
+        "Ingrese la cantidad:",
+        "Ingrese el número de cuotas (6, 12 o 24):"
+    )
+
+    var pasoActual by remember { mutableIntStateOf(0) }
+    var inputActual by remember { mutableStateOf("") }
+    val historial = remember { mutableStateListOf<String>() }
+    var errorTexto by remember { mutableStateOf<String?>(null) }
+
     var nombre by remember { mutableStateOf("") }
-    var precioTexto by remember { mutableStateOf("") }
-    var cantidadTexto by remember { mutableStateOf("") }
-    var cuotasTexto by remember { mutableStateOf("") }
-    var errorCuotas by remember { mutableStateOf<String?>(null) }
-    var datosValidados by remember { mutableStateOf(false) }
+    var precio by remember { mutableDoubleStateOf(0.0) }
+    var cantidad by remember { mutableIntStateOf(0) }
+    var cuotas by remember { mutableIntStateOf(0) }
+
+    fun procesarRespuesta() {
+        errorTexto = null
+        when (pasoActual) {
+            0 -> {
+                nombre = inputActual
+                historial.add("${preguntas[0]} $nombre")
+            }
+            1 -> {
+                val valor = inputActual.toDoubleOrNull()
+                if (valor == null) {
+                    errorTexto = "Ingrese un precio válido"
+                    return
+                }
+                precio = valor
+                historial.add("${preguntas[1]} $precio")
+            }
+            2 -> {
+                val valor = inputActual.toIntOrNull()
+                if (valor == null) {
+                    errorTexto = "Ingrese una cantidad válida"
+                    return
+                }
+                cantidad = valor
+                historial.add("${preguntas[2]} $cantidad")
+            }
+            3 -> {
+                val valor = inputActual.toIntOrNull()
+                if (valor == null || !cuotasPermitidas.containsKey(valor)) {
+                    errorTexto = "Solo se permiten 6, 12 o 24 cuotas"
+                    return
+                }
+                cuotas = valor
+                historial.add("${preguntas[3]} $cuotas")
+
+                val montoInicial = precio * cantidad
+                historial.add("")
+                historial.add("Monto Inicial: S/ ${"%.2f".format(montoInicial)}")
+            }
+        }
+        inputActual = ""
+        if (pasoActual < preguntas.size) {
+            pasoActual++
+        }
+    }
 
     Column(
         modifier = modifier
@@ -49,62 +104,36 @@ fun CalculadoraCuotas(modifier: Modifier = Modifier) {
         Text("Calculadora de Cuotas", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-            label = { Text("Nombre del producto") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = precioTexto,
-            onValueChange = { precioTexto = it },
-            label = { Text("Precio") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = cantidadTexto,
-            onValueChange = { cantidadTexto = it },
-            label = { Text("Cantidad") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = cuotasTexto,
-            onValueChange = { cuotasTexto = it },
-            label = { Text("N° de cuotas (6, 12 o 24)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                val cuotas = cuotasTexto.toIntOrNull()
-                if (cuotas == null || !cuotasPermitidas.containsKey(cuotas)) {
-                    errorCuotas = "Solo se permiten 6, 12 o 24 cuotas"
-                    datosValidados = false
-                } else {
-                    errorCuotas = null
-                    datosValidados = true
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
         ) {
-            Text("Validar datos")
+            historial.forEach { linea ->
+                Text(linea, style = MaterialTheme.typography.bodyMedium)
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        errorCuotas?.let {
+        errorTexto?.let {
             Text(it, color = MaterialTheme.colorScheme.error)
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
-        if (datosValidados) {
-            Text(" Datos válidos. Nombre: $nombre", style = MaterialTheme.typography.bodyLarge)
+        if (pasoActual < preguntas.size) {
+            Text(preguntas[pasoActual], style = MaterialTheme.typography.bodyLarge)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = inputActual,
+                onValueChange = { inputActual = it },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { procesarRespuesta() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Enviar")
+            }
         }
     }
 }
