@@ -6,7 +6,7 @@ val cuotasPermitidas = mapOf(
 
 fun main() {
     println("=========================================")
-    println("   CALCULADORA DE CUOTAS ")
+    println("   CALCULADORA DE CUOTAS - TIENDA TECSUP")
     println("=========================================")
 
     print("Ingrese el nombre del producto: ")
@@ -34,6 +34,7 @@ fun main() {
     val tasaInteres = cuotasPermitidas[cuotas]!!
     val interes = montoInicial * tasaInteres
     val montoAPagar = montoInicial + interes
+    val pagoMensual = montoAPagar / cuotas
 
     println()
     println("=========================================")
@@ -41,5 +42,7 @@ fun main() {
     println("Monto Inicial   : S/ ${"%.2f".format(montoInicial)}")
     println("Interes (${(tasaInteres * 100).toInt()}%)   : S/ ${"%.2f".format(interes)}")
     println("Monto a Pagar   : S/ ${"%.2f".format(montoAPagar)}")
+    println("N de Cuotas     : $cuotas")
+    println("Pago Mensual    : S/ ${"%.2f".format(pagoMensual)}")
     println("=========================================")
 }
