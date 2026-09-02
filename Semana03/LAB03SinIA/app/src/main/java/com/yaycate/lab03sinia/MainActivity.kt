@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.yaycate.lab03sinia.ui.theme.LAB03SinIATheme
 
@@ -87,28 +88,28 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
                 label = { Text("Cantidad") },
                 modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Button (
-                onClick = { mostrarResumen = true },
-                modifier = Modifier.fillMaxWidth()
-            )
-            {
-                Text("AGREGAR PRODUCTO")
-            }
         }
+
         Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = { mostrarResumen = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("AGREGAR PRODUCTO")
+        }
+
         if (mostrarResumen) {
             val precioNum = precio.toDoubleOrNull() ?: 0.0
             val cantidadNum = cantidad.toIntOrNull() ?: 0
             val importe = precioNum * cantidadNum
 
-            Card (
+            Spacer(modifier = Modifier.height(24.dp))
+            Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
-            )
-            {
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(nombre, style = MaterialTheme.typography.titleLarge)
                     Text("Precio: S/ " + String.format("%.2f", precioNum))
@@ -120,6 +121,12 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "✓ Producto registrado correctamente",
+                color = Color(0xFF2E7D32)
+            )
         }
     }
 }
