@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.yaycate.lab03sinia.PantallaRegistro
 import com.yaycate.lab03sinia.ui.theme.LAB03SinIATheme
 
 class MainActivity : ComponentActivity() {
@@ -51,6 +53,8 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
     var precio by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("") }
     var mostrarResumen by remember { mutableStateOf(false) }
+    var mostrarError by remember { mutableStateOf(false) }
+    var mensajeError by remember { mutableStateOf("") }
 
     Column(
         modifier = modifier
@@ -95,10 +99,39 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(24.dp))
         Button(
-            onClick = { mostrarResumen = true },
+            onClick = {
+                if (nombre.isBlank() || precio.isBlank() || cantidad.isBlank()) {
+                    mostrarError = true
+                    mostrarResumen = false
+                    mensajeError = "Completa todos los campos antes de continuar"
+                } else {
+                    mostrarError = false
+                    mostrarResumen = true
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("AGREGAR PRODUCTO")
+        }
+
+        TextButton(
+            onClick = {
+                nombre = ""
+                precio = ""
+                cantidad = ""
+                mostrarResumen = false
+                mostrarError = false
+            }
+        ) {
+            Text("Limpiar")
+        }
+
+        if (mostrarError) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = mensajeError,
+                color = Color(0xFFB00020)
+            )
         }
 
         if (mostrarResumen) {
