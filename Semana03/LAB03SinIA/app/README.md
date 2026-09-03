@@ -43,12 +43,11 @@ Nombre, Precio y Cantidad. Agrega validación para que no se pueda agregar
 el producto si algún campo está vacío, mostrando un mensaje de error.
 Además agrega un botón 'Limpiar' que reinicie todos los campos.
 
-### B2 - Qué tuve que ajustar
-Cambié el paquete y el nombre del tema para que coincidan con mi proyecto
-(com.yaycate.lab03sinia, LAB03SinIATheme), acomodé las variables nuevas
-junto a las que ya tenía, y ubiqué el botón Limpiar debajo de Agregar
-Producto.
+### Mejora con IA - Prompt y decisiones
 
+| Prompt que usé | Qué generó Gemini | Qué acepté o corregí (y por qué) |
+|---|---|---|
+| "Agrega validación para que no se pueda agregar el producto si algún campo está vacío, mostrando un mensaje de error. Además agrega un botón 'Limpiar' que reinicie todos los campos." | Estados `mostrarError`/`mensajeError`, validación en el botón Agregar, y un `TextButton` "Limpiar" | Acepté la lógica tal cual porque funcionaba bien; solo corregí el paquete y el tema para que calcen con mi proyecto |
 ### B3 - Cómo me quedó
 Lo probé en el emulador: valida los campos vacíos, registra bien con
 datos completos, y Limpiar deja todo en blanco. Funcionó a la primera.
