@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +41,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.yaycate.registronotas.ui.theme.RegistroNotasTheme
+import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,6 +96,7 @@ fun PantallaNotas(modifier: Modifier = Modifier) {
     var notaBd by remember { mutableFloatStateOf(0f) }
     var redondear by remember { mutableStateOf(false) }
     var confirmado by remember { mutableStateOf(false) }
+    var mostrarResultado by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -145,15 +152,98 @@ fun PantallaNotas(modifier: Modifier = Modifier) {
                 )
             }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(
                     checked = confirmado,
                     onCheckedChange = { confirmado = it }
                 )
                 Text("Confirmo que las notas son correctas")
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { mostrarResultado = true },
+                enabled = confirmado,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("CALCULAR PROMEDIO")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (!mostrarResultado) {
+                Text(
+                    text = "Asigna las notas y confirma para calcular",
+                    color = MaterialTheme.colorScheme.outline
+                )
+            } else {
+                val promedioPonderado =
+                    notaFundamentos * 0.20f + notaPoo * 0.25f + notaMoviles * 0.30f + notaBd * 0.25f
+                val promedioFinal =
+                    if (redondear) promedioPonderado.roundToInt().toFloat() else promedioPonderado
+
+                val (observacion, colorChip) = when {
+                    promedioFinal >= 17f -> "EXCELENTE" to Color(0xFF1B5E20)
+                    promedioFinal >= 13f -> "APROBADO" to Color(0xFF43A047)
+                    promedioFinal >= 10f -> "EN RECUPERACIÓN" to Color(0xFFFFA000)
+                    else -> "DESAPROBADO" to Color(0xFFD32F2F)
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Promedio ponderado: " + String.format("%.2f", promedioPonderado))
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = if (redondear)
+                                "Promedio final: ${promedioFinal.toInt()}"
+                            else
+                                "Promedio final: " + String.format("%.2f", promedioFinal),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        if (redondear) {
+                            Text(
+                                text = "(redondeado)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .background(colorChip.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = observacion,
+                                color = colorChip,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "✓ Promedio calculado correctamente",
+                    color = Color(0xFF2E7D32)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Desarrollado por: Eder Marcelo",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.outline
+            )
         }
     }
 }
