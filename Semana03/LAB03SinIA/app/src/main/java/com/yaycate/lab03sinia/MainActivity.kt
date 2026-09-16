@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat.enableEdgeToEdge
 import com.yaycate.lab03sinia.ui.theme.LAB03SinIATheme
 
 class MainActivity : ComponentActivity() {
@@ -60,7 +61,7 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
     ) {
         Text(
             text = "Nuevo producto",
-            style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.headlineSmall
         )
         Text(
             text = "Completa los datos y presiona Agregar",
