@@ -21,6 +21,8 @@ data class Tarea(
     val completada: Boolean = false
 )
 
+enum class Filtro { TODAS, PENDIENTES, COMPLETADAS }
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,6 +35,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaTareas() {
     val tareas = remember {
@@ -43,9 +46,16 @@ fun PantallaTareas() {
         )
     }
     var nombreNuevo by remember { mutableStateOf("") }
+    var filtroActual by remember { mutableStateOf(Filtro.TODAS) }
 
     val completadas = tareas.count { it.completada }
     val pendientes = tareas.size - completadas
+
+    val tareasFiltradas = when (filtroActual) {
+        Filtro.TODAS -> tareas
+        Filtro.PENDIENTES -> tareas.filter { !it.completada }
+        Filtro.COMPLETADAS -> tareas.filter { it.completada }
+    }
 
     Column(
         modifier = Modifier
@@ -93,8 +103,30 @@ fun PantallaTareas() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        Row(modifier = Modifier.fillMaxWidth()) {
+            FilterChip(
+                selected = filtroActual == Filtro.TODAS,
+                onClick = { filtroActual = Filtro.TODAS },
+                label = { Text("Todas") }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            FilterChip(
+                selected = filtroActual == Filtro.PENDIENTES,
+                onClick = { filtroActual = Filtro.PENDIENTES },
+                label = { Text("Pendientes") }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            FilterChip(
+                selected = filtroActual == Filtro.COMPLETADAS,
+                onClick = { filtroActual = Filtro.COMPLETADAS },
+                label = { Text("Completadas") }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         LazyColumn {
-            items(tareas, key = { it.id }) { tarea ->
+            items(tareasFiltradas, key = { it.id }) { tarea ->
                 ItemTarea(
                     tarea = tarea,
                     onCambiarEstado = { nuevoEstado ->
