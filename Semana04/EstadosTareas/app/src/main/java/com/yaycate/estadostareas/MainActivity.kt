@@ -85,12 +85,15 @@ fun PantallaTareas() {
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn {
-            items(tareas) { tarea ->
+            items(tareas, key = { it.id }) { tarea ->
                 ItemTarea(
                     tarea = tarea,
                     onCambiarEstado = { nuevoEstado ->
                         val index = tareas.indexOf(tarea)
                         tareas[index] = tarea.copy(completada = nuevoEstado)
+                    },
+                    onEliminar = {
+                        tareas.remove(tarea)
                     }
                 )
             }
@@ -101,7 +104,8 @@ fun PantallaTareas() {
 @Composable
 fun ItemTarea(
     tarea: Tarea,
-    onCambiarEstado: (Boolean) -> Unit
+    onCambiarEstado: (Boolean) -> Unit,
+    onEliminar: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -128,7 +132,16 @@ fun ItemTarea(
                 MaterialTheme.colorScheme.outline
             } else {
                 MaterialTheme.colorScheme.onSurface
-            }
+            },
+            modifier = Modifier.weight(1f)
         )
+
+        IconButton(onClick = onEliminar) {
+            Text(
+                text = "✕",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
     }
 }
