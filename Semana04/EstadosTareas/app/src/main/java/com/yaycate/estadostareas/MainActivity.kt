@@ -186,3 +186,11 @@ fun ItemTarea(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPantallaTareas() {
+    MaterialTheme {
+        PantallaTareas()
+    }
+}
