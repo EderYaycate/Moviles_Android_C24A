@@ -44,6 +44,9 @@ fun PantallaTareas() {
     }
     var nombreNuevo by remember { mutableStateOf("") }
 
+    val completadas = tareas.count { it.completada }
+    val pendientes = tareas.size - completadas
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -52,6 +55,12 @@ fun PantallaTareas() {
         Text(
             text = "Mis tareas",
             style = MaterialTheme.typography.headlineSmall
+        )
+
+        Text(
+            text = "$pendientes pendientes · $completadas completadas",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.outline
         )
 
         Spacer(modifier = Modifier.height(16.dp))
