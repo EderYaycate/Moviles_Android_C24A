@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -23,13 +24,20 @@ import androidx.compose.ui.unit.dp
 fun TemperatureDisplay() {
     var temperatura by remember { mutableStateOf(20) }
 
+    val colorTexto = when {
+        temperatura > 30 -> Color.Red
+        temperatura < 10 -> Color.Blue
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+
     Column(
         modifier = Modifier.padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "$temperatura°C",
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineMedium,
+            color = colorTexto
         )
 
         Spacer(modifier = Modifier.height(16.dp))
