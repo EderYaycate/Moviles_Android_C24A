@@ -42,6 +42,7 @@ fun PantallaTareas() {
             Tarea(id = 3, nombre = "Hacer ejercicio")
         )
     }
+    var nombreNuevo by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -52,6 +53,34 @@ fun PantallaTareas() {
             text = "Mis tareas",
             style = MaterialTheme.typography.headlineSmall
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = nombreNuevo,
+                onValueChange = { nombreNuevo = it },
+                label = { Text("Nueva tarea") },
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
+                    if (nombreNuevo.isNotBlank()) {
+                        val nuevoId = (tareas.maxOfOrNull { it.id } ?: 0) + 1
+                        tareas.add(Tarea(id = nuevoId, nombre = nombreNuevo))
+                        nombreNuevo = ""
+                    }
+                }
+            ) {
+                Text("Agregar")
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
