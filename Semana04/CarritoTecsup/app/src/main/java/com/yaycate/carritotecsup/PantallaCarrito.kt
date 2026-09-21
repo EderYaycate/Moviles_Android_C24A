@@ -17,9 +17,17 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
 
     val productos = remember { mutableStateListOf<Producto>() }
     var productoAEliminar by remember { mutableStateOf<Producto?>(null) }
+
     val subtotal = productos.sumOf { it.precio * it.cantidad }
     val igv = subtotal * 0.18
-    val total = subtotal + igv
+    val totalSinDescuento = subtotal + igv
+    val porcentajeDescuento = when {
+        totalSinDescuento > 5000 -> 0.10
+        totalSinDescuento > 3000 -> 0.05
+        else -> 0.0
+    }
+    val descuento = totalSinDescuento * porcentajeDescuento
+    val total = totalSinDescuento - descuento
 
     Column(
         modifier = modifier
@@ -127,6 +135,18 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
                     Text("IGV (18%)")
                     Text("S/ ${"%.2f".format(igv)}")
                 }
+                if (porcentajeDescuento > 0) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Descuento (${(porcentajeDescuento * 100).toInt()}%)")
+                        Text(
+                            "- S/ ${"%.2f".format(descuento)}",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -167,4 +187,3 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
         )
     }
 }
-
