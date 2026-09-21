@@ -97,7 +97,7 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
                 items(productos) { producto ->
                     TarjetaProducto(
                         producto = producto,
-                        onEliminar = { productos.remove(producto) }
+                        onEliminar = { productoAEliminar = producto }
                     )
                 }
             }
