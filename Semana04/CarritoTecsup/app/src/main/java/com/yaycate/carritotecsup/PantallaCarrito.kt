@@ -145,4 +145,26 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
             }
         }
     }
+
+    productoAEliminar?.let { producto ->
+        AlertDialog(
+            onDismissRequest = { productoAEliminar = null },
+            title = { Text("¿Eliminar este producto?") },
+            text = { Text("Se eliminará \"${producto.nombre}\" del carrito.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    productos.remove(producto)
+                    productoAEliminar = null
+                }) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { productoAEliminar = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 }
+
