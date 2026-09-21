@@ -16,7 +16,7 @@ fun PantallaCarrito(modifier: Modifier = Modifier) {
     var cantidad by remember { mutableStateOf("") }
 
     val productos = remember { mutableStateListOf<Producto>() }
-
+    var productoAEliminar by remember { mutableStateOf<Producto?>(null) }
     val subtotal = productos.sumOf { it.precio * it.cantidad }
     val igv = subtotal * 0.18
     val total = subtotal + igv
