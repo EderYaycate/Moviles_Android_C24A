@@ -1,4 +1,3 @@
-package com.yaycate.navegaciontec
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
