@@ -32,7 +32,10 @@ class MainActivity : ComponentActivity() {
 fun TecsupFitApp() {
     val navController = rememberNavController()
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = { TecsupBottomBar(navController) }
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = "inicio",
@@ -52,4 +55,5 @@ fun TecsupFitApp() {
             }
         }
     }
+
 }
