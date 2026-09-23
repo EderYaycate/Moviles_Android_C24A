@@ -42,7 +42,10 @@ fun TecsupFitApp() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("inicio") {
-                Text("Pantalla Inicio (siguiente paso)")
+                InicioScreen(
+                    clases = clasesDeEjemplo(),
+                    onClaseClick = { claseId -> /* en el próximo paso navegamos al detalle */ }
+                )
             }
             composable("reservas") {
                 Text("Pantalla Reservas (siguiente paso)")
