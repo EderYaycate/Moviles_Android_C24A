@@ -6,10 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.yaycate.navegaciontec.screens.DetailScreen
-import com.yaycate.navegaciontec.screens.HomeScreen
-import com.yaycate.navegaciontec.screens.ListScreen
-import com.yaycate.navegaciontec.screens.ProfileScreen
+import com.yaycate.navegaciontec.screens.*
 
 @Composable
 fun AppNavigation() {
@@ -17,28 +14,53 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route
+        startDestination = "login"
     ) {
-        composable(Screen.Home.route) {
-            HomeScreen(navController)
-        }
-        composable(Screen.List.route) {
-            ListScreen(navController)
-        }
-        composable(Screen.Profile.route) {
-            ProfileScreen(navController)
-        }
-        composable(
-            route = Screen.Detail.route,
-            arguments = listOf(
-                navArgument(name = "itemId") {
-                    type = NavType.IntType
-                    defaultValue = 0
+        composable("login") {
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate("home") {
+                        popUpTo("login") { inclusive = true }
+                    }
                 }
             )
+        }
+        composable("home") {
+            HomeScreen(
+                onNavigateToList = { navController.navigate("list") },
+                onNavigateToProfile = { navController.navigate("profile") },
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable("list") {
+            ListScreen(
+                onNavigateToDetail = { id -> navController.navigate("detail/$id") },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = "detail/{itemId}",
+            arguments = listOf(navArgument("itemId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val itemId = backStackEntry.arguments?.getInt(/* key = */ "itemId") ?: 0
-            DetailScreen(navController, itemId)
+            val itemId = backStackEntry.arguments?.getInt("itemId") ?: 1
+            DetailScreen(
+                itemId = itemId,
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable("profile") {
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }
