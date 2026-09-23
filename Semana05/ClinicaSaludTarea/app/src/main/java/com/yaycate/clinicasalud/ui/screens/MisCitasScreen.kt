@@ -17,9 +17,12 @@ import com.yaycate.clinicasalud.model.Cita
 @Composable
 fun MisCitasScreen(
     citas: List<Cita>,
-    onCancelarCita: (Cita) -> Unit = {},
+    onCancelarCita: (Cita) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Estado para guardar la cita que se desea eliminar
+    var citaAEliminar by remember { mutableStateOf<Cita?>(null) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -77,8 +80,9 @@ fun MisCitasScreen(
                                 )
                             }
 
+                            // Mostrar icono de basurero si la cita esta Confirmada
                             if (cita.estado == "Confirmada") {
-                                IconButton(onClick = { /* Lógica del AlertDialog en el Paso 2 */ }) {
+                                IconButton(onClick = { citaAEliminar = cita }) {
                                     Icon(
                                         imageVector = Icons.Filled.Delete,
                                         contentDescription = "Cancelar cita",
@@ -90,6 +94,34 @@ fun MisCitasScreen(
                     }
                 }
             }
+        }
+
+        // AlertDialog de confirmación de cancelación
+        citaAEliminar?.let { cita ->
+            AlertDialog(
+                onDismissRequest = { citaAEliminar = null },
+                title = { Text(text = "Cancelar cita") },
+                text = {
+                    Text(
+                        text = "¿Estás seguro de que deseas cancelar la cita con el Dr(a). ${cita.doctor} para el ${cita.fecha} a las ${cita.hora}?"
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            onCancelarCita(cita)
+                            citaAEliminar = null
+                        }
+                    ) {
+                        Text("Confirmar", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { citaAEliminar = null }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }

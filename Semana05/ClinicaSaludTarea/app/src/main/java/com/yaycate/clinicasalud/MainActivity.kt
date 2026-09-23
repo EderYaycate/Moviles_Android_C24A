@@ -131,11 +131,17 @@ fun ClinicaSaludApp() {
                 }
 
                 composable(Screen.MisCitas.route) {
-                    MisCitasScreen(citas = misCitas)
+                    MisCitasScreen(
+                        citas = misCitas,
+                        onCancelarCita = { cita -> misCitas.remove(cita) }
+                    )
                 }
 
                 composable(Screen.Historial.route) {
-                    MisCitasScreen(citas = misCitas.filter { it.estado == "Completada" })
+                    MisCitasScreen(
+                        citas = misCitas.filter { it.estado == "Completada" },
+                        onCancelarCita = { cita -> misCitas.remove(cita) }
+                    )
                 }
             }
         }
