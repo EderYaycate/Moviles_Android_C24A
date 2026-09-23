@@ -15,6 +15,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.yaycate.tecsupfit.ui.theme.TECSUPFITTheme
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,19 +46,20 @@ fun TecsupFitApp() {
             composable("inicio") {
                 InicioScreen(
                     clases = clasesDeEjemplo(),
-                    onClaseClick = { claseId -> /* en el próximo paso navegamos al detalle */ }
+                    onClaseClick = { claseId -> navController.navigate("detalle/$claseId") }
                 )
             }
-            composable("reservas") {
-                Text("Pantalla Reservas (siguiente paso)")
-            }
-            composable("rutinas") {
-                Text("Pantalla Rutinas (siguiente paso)")
-            }
-            composable("perfil") {
-                Text("Pantalla Perfil (siguiente paso)")
+            composable(
+                "detalle/{claseId}",
+                arguments = listOf(navArgument("claseId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val claseId = backStackEntry.arguments?.getInt("claseId") ?: -1
+                val clase = clasesDeEjemplo().first { it.id == claseId }
+                DetalleClaseScreen(
+                    clase = clase,
+                    onReservar = { horario -> /* en el próximo paso navegamos a Confirmación */ }
+                )
             }
         }
-    }
 
-}
+    }}
