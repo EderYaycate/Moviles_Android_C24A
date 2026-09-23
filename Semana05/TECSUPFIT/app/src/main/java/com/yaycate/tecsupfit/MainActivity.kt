@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.yaycate.tecsupfit.ui.theme.TecsupBottomBar
 import com.yaycate.tecsupfit.ui.theme.TECSUPFITTheme
 
 class MainActivity : ComponentActivity() {
@@ -34,11 +35,21 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TecsupFitApp() {
     val navController = rememberNavController()
-    val reservas = remember { mutableStateListOf<Reserva>() }
 
-    // Usuario de ejemplo para la pantalla de perfil
+    // Lista mutable inicializada con una reserva de prueba completada
+    val reservas = remember {
+        mutableStateListOf(
+            Reserva(
+                id = 1,
+                clase = clasesDeEjemplo()[0],
+                horarioElegido = "7:00 am",
+                estado = "Completada"
+            )
+        )
+    }
+
     val usuario = remember {
-        UsuarioPerfil(nombre = "Eder Yaycate", clasesTomadas = 12, rachaDias = 5)
+        UsuarioPerfil(nombre = "Eder Yaycate", clasesTomadas = 14, rachaDias = 3)
     }
 
     Scaffold(
@@ -53,7 +64,8 @@ fun TecsupFitApp() {
             composable("inicio") {
                 InicioScreen(
                     clases = clasesDeEjemplo(),
-                    onClaseClick = { claseId -> navController.navigate("detalle/$claseId") }
+                    usuarioNombre = usuario.nombre.split(" ").firstOrNull() ?: "",
+                    onClaseSelected = { claseId -> navController.navigate("detalle/$claseId") }
                 )
             }
 
@@ -62,11 +74,15 @@ fun TecsupFitApp() {
                 arguments = listOf(navArgument("claseId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val claseId = backStackEntry.arguments?.getInt("claseId") ?: -1
-                val clase = clasesDeEjemplo().first { it.id == claseId }
-                DetalleClaseScreen(
-                    clase = clase,
-                    onReservar = { horario -> navController.navigate("confirmacion/$claseId/$horario") }
-                )
+                val clase = clasesDeEjemplo().firstOrNull { it.id == claseId }
+
+                clase?.let {
+                    DetalleClaseScreen(
+                        clase = it,
+                        onBack = { navController.popBackStack() },
+                        onReservar = { horario -> navController.navigate("confirmacion/$claseId/$horario") }
+                    )
+                }
             }
 
             composable(
@@ -78,37 +94,45 @@ fun TecsupFitApp() {
             ) { backStackEntry ->
                 val claseId = backStackEntry.arguments?.getInt("claseId") ?: -1
                 val horario = backStackEntry.arguments?.getString("horario") ?: ""
-                val clase = clasesDeEjemplo().first { it.id == claseId }
+                val clase = clasesDeEjemplo().firstOrNull { it.id == claseId }
 
                 LaunchedEffect(claseId, horario) {
-                    if (reservas.none { it.clase.id == claseId && it.horarioElegido == horario }) {
-                        reservas.add(
-                            Reserva(
-                                id = reservas.size + 1,
-                                clase = clase,
-                                horarioElegido = horario,
-                                estado = "Confirmada"
+                    clase?.let {
+                        if (reservas.none { r -> r.clase.id == claseId && r.horarioElegido == horario }) {
+                            reservas.add(
+                                Reserva(
+                                    id = reservas.size + 1,
+                                    clase = it,
+                                    horarioElegido = horario,
+                                    estado = "Confirmada"
+                                )
                             )
-                        )
+                        }
                     }
                 }
 
-                ConfirmacionScreen(
-                    clase = clase,
-                    horario = horario,
-                    onVerReservas = {
-                        navController.navigate("reservas") {
-                            popUpTo("inicio")
+                clase?.let {
+                    ConfirmacionScreen(
+                        clase = it,
+                        horario = horario,
+                        onVerReservas = {
+                            navController.navigate("reservas") {
+                                popUpTo("inicio")
+                            }
                         }
+                    )
+                }
+            }
+
+            composable("reservas") {
+                ReservasScreen(
+                    reservas = reservas,
+                    onCancelarReserva = { reservaAEliminar ->
+                        reservas.remove(reservaAEliminar)
                     }
                 )
             }
 
-            composable("reservas") {
-                ReservasScreen(reservas = reservas)
-            }
-
-            // Pestañas agregadas para el BottomBar
             composable("rutinas") {
                 RutinasScreen()
             }

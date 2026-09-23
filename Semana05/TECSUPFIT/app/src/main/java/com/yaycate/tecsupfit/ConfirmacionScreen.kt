@@ -1,8 +1,11 @@
 package com.yaycate.tecsupfit
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -12,33 +15,54 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ConfirmacionScreen(clase: ClaseGym, horario: String, onVerReservas: () -> Unit) {
+fun ConfirmacionScreen(
+    clase: ClaseGym,
+    horario: String,
+    onVerReservas: () -> Unit
+) {
     Column(
-        Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            Icons.Filled.CheckCircle,
-            contentDescription = null,
-            tint = Color(0xFF2E7D32),
-            modifier = Modifier.size(72.dp)
-        )
-        Spacer(Modifier.height(16.dp))
-        Text("¡Reserva confirmada!", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(24.dp))
-
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(16.dp)) {
-                Text("Clase: ${clase.nombre}", fontWeight = FontWeight.Bold)
-                Text("Instructor: ${clase.instructor}")
-                Text("Horario: $horario")
-            }
+        Box(
+            modifier = Modifier
+                .size(90.dp)
+                .background(Color(0xFFE8F5E9), shape = CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "Éxito",
+                tint = Color(0xFF2E7D32),
+                modifier = Modifier.size(50.dp)
+            )
         }
 
-        Spacer(Modifier.height(24.dp))
-        Button(onClick = onVerReservas, modifier = Modifier.fillMaxWidth()) {
-            Text("Ver mis reservas")
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "¡Cupo reservado!",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = clase.nombre, style = MaterialTheme.typography.titleMedium)
+        Text(text = "Hoy, $horario · ${clase.sala}", color = Color.Gray)
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Button(
+            onClick = onVerReservas,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEEEEEE))
+        ) {
+            Text(text = "Ver mis reservas", color = Color.Black)
         }
     }
 }
