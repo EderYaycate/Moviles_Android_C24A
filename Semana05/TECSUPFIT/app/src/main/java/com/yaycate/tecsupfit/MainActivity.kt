@@ -101,6 +101,10 @@ fun TecsupFitApp() {
                     }
                 )
             }
+
+            composable("reservas") {
+                ReservasScreen(reservas = reservas)
+            }
         }
     }
 }
