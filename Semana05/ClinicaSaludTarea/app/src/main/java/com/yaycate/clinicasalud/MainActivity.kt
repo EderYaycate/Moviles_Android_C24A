@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.yaycate.clinicasalud.data.DataSource
 import com.yaycate.clinicasalud.navigation.Screen
+import com.yaycate.clinicasalud.ui.screens.ConfirmacionScreen
 import com.yaycate.clinicasalud.ui.screens.InicioScreen
 import com.yaycate.clinicasalud.ui.screens.PerfilMedicoScreen
 import com.yaycate.clinicasalud.ui.theme.ClinicaSaludTheme
@@ -30,7 +31,6 @@ class MainActivity : ComponentActivity() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
 fun ClinicaSaludApp() {
     val navController = rememberNavController()
@@ -60,10 +60,38 @@ fun ClinicaSaludApp() {
                 PerfilMedicoScreen(
                     doctor = doctor,
                     onAgendarClick = { fecha, hora ->
-                        navController.navigate(Screen.Confirmacion.route)
+                        val fechaCodificada = fecha.replace(" ", "_")
+                        val horaCodificada = hora.replace(" ", "_")
+                        navController.navigate(
+                            Screen.Confirmacion.createRoute(doctorId, fechaCodificada, horaCodificada)
+                        )
                     }
                 )
+            }
 
+            composable(
+                route = Screen.Confirmacion.route,
+                arguments = listOf(
+                    navArgument("doctorId") { type = NavType.IntType },
+                    navArgument("fecha") { type = NavType.StringType },
+                    navArgument("hora") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val doctorId = backStackEntry.arguments?.getInt("doctorId") ?: 0
+                val fecha = backStackEntry.arguments?.getString("fecha")?.replace("_", " ") ?: ""
+                val hora = backStackEntry.arguments?.getString("hora")?.replace("_", " ") ?: ""
+                val doctor = DataSource.medicos.first { it.id == doctorId }
+
+                ConfirmacionScreen(
+                    doctor = doctor,
+                    fecha = fecha,
+                    hora = hora,
+                    onVolverInicioClick = {
+                        navController.navigate(Screen.Inicio.route) {
+                            popUpTo(Screen.Inicio.route) { inclusive = true }
+                        }
+                    }
+                )
             }
         }
     }
