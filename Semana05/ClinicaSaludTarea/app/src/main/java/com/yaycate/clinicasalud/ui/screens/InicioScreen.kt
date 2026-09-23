@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.yaycate.clinicasalud.data.DataSource
 import com.yaycate.clinicasalud.model.Doctor
+import androidx.compose.material.icons.filled.Person
 
 @Composable
 fun InicioScreen(
@@ -71,9 +72,17 @@ fun TarjetaDoctor(doctor: Doctor, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
-                Text(text = doctor.nombre, style = MaterialTheme.typography.titleMedium)
-                Text(text = doctor.especialidad, style = MaterialTheme.typography.bodyMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = "Médico",
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(text = doctor.nombre, style = MaterialTheme.typography.titleMedium)
+                    Text(text = doctor.especialidad, style = MaterialTheme.typography.bodyMedium)
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = Icons.Filled.Star, contentDescription = "Calificación")
@@ -81,5 +90,6 @@ fun TarjetaDoctor(doctor: Doctor, onClick: () -> Unit) {
                 Text(text = doctor.calificacion.toString())
             }
         }
+
     }
 }
