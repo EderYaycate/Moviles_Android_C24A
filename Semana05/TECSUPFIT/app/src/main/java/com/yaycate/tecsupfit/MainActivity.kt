@@ -10,13 +10,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.yaycate.tecsupfit.ui.theme.TECSUPFITTheme
-import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.yaycate.tecsupfit.ui.theme.TECSUPFITTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,6 +37,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TecsupFitApp() {
     val navController = rememberNavController()
+    val reservas = remember { mutableStateListOf<Reserva>() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -49,6 +54,7 @@ fun TecsupFitApp() {
                     onClaseClick = { claseId -> navController.navigate("detalle/$claseId") }
                 )
             }
+
             composable(
                 "detalle/{claseId}",
                 arguments = listOf(navArgument("claseId") { type = NavType.IntType })
@@ -57,9 +63,44 @@ fun TecsupFitApp() {
                 val clase = clasesDeEjemplo().first { it.id == claseId }
                 DetalleClaseScreen(
                     clase = clase,
-                    onReservar = { horario -> /* en el próximo paso navegamos a Confirmación */ }
+                    onReservar = { horario -> navController.navigate("confirmacion/$claseId/$horario") }
+                )
+            }
+
+            composable(
+                "confirmacion/{claseId}/{horario}",
+                arguments = listOf(
+                    navArgument("claseId") { type = NavType.IntType },
+                    navArgument("horario") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val claseId = backStackEntry.arguments?.getInt("claseId") ?: -1
+                val horario = backStackEntry.arguments?.getString("horario") ?: ""
+                val clase = clasesDeEjemplo().first { it.id == claseId }
+
+                LaunchedEffect(claseId, horario) {
+                    if (reservas.none { it.clase.id == claseId && it.horarioElegido == horario }) {
+                        reservas.add(
+                            Reserva(
+                                id = reservas.size + 1,
+                                clase = clase,
+                                horarioElegido = horario,
+                                estado = "Confirmada"
+                            )
+                        )
+                    }
+                }
+
+                ConfirmacionScreen(
+                    clase = clase,
+                    horario = horario,
+                    onVerReservas = {
+                        navController.navigate("reservas") {
+                            popUpTo("inicio")
+                        }
+                    }
                 )
             }
         }
-
-    }}
+    }
+}
