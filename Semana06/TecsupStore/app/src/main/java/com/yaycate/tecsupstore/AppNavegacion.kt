@@ -30,9 +30,15 @@ fun AppNavegacion() {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-
             AppDrawer(
-                onItemClick = {
+                onItemClick = { destino ->
+                    navController.navigate(destino.ruta) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                     scope.launch { drawerState.close() }
                 }
             )
@@ -63,7 +69,6 @@ fun AppNavegacion() {
                 composable("favoritos") { Text("Favoritos") }
                 composable("perfil") { Text("Perfil") }
             }
-
         }
     }
 }
