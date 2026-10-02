@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
@@ -28,9 +29,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun TarjetaProducto(producto: Producto, modifier: Modifier = Modifier) {
-    var expanded by remember { mutableStateOf(false) }
+fun TarjetaProducto(
 
+    producto: Producto,
+    esFavorito: Boolean,
+    onFavoritoClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
 
     Card(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -54,16 +60,25 @@ fun TarjetaProducto(producto: Producto, modifier: Modifier = Modifier) {
                     onDismissRequest = { expanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Favoritos") },
-                        leadingIcon = {
-                            Icon(Icons.Default.Favorite, contentDescription = null)
+                        text = {
+                            Text(if (esFavorito) "Quitar de favoritos" else "Favoritos")
                         },
-                        onClick = { expanded = false }
+
+                        leadingIcon = {
+                            Icon(
+                                imageVector = if (esFavorito) Icons.Default.Favorite
+                                else Icons.Default.FavoriteBorder,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            onFavoritoClick()
+                            expanded = false
+                        }
                     )
                     HorizontalDivider()
                     DropdownMenuItem(
                         text = { Text("Compartir") },
-
                         leadingIcon = {
                             Icon(Icons.Default.Share, contentDescription = null)
                         },
@@ -81,4 +96,5 @@ fun TarjetaProducto(producto: Producto, modifier: Modifier = Modifier) {
             }
         }
     }
+
 }

@@ -17,7 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun PantallaInicio(modifier: Modifier = Modifier) {
+fun PantallaInicio(
+    favoritos: List<Int>,
+    onToggleFavorito: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var categoriaActual by remember { mutableStateOf("Todas") }
     val filtrados = if (categoriaActual == "Todas") {
         productosEjemplo
@@ -43,7 +47,11 @@ fun PantallaInicio(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(filtrados, key = { it.id }) { producto ->
-                TarjetaProducto(producto)
+                TarjetaProducto(
+                    producto = producto,
+                    esFavorito = producto.id in favoritos,
+                    onFavoritoClick = { onToggleFavorito(producto.id) }
+                )
             }
         }
     }
