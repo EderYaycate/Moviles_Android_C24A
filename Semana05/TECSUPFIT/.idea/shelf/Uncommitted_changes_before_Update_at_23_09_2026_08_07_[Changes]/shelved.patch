@@ -1,0 +1,108 @@
+Index: app/src/main/java/com/yaycate/tecsupfit/Modelos.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/yaycate/tecsupfit/Modelos.kt b/app/src/main/java/com/yaycate/tecsupfit/Modelos.kt
+new file mode 100644
+--- /dev/null	(date 1790167657458)
++++ b/app/src/main/java/com/yaycate/tecsupfit/Modelos.kt	(date 1790167657458)
+@@ -0,0 +1,30 @@
++package com.yaycate.tecsupfit
++
++data class ClaseGym(
++    val id: Int,
++    val nombre: String,
++    val instructor: String,
++    val dia: String,           // "Hoy" o "Esta semana" -> para el filtro
++    val cuposDisponibles: List<String> // mínimo 3 horarios/cupos
++)
++
++data class Reserva(
++    val id: Int,
++    val clase: ClaseGym,
++    val horarioElegido: String,
++    var estado: String // "Confirmada" o "Completada"
++)
++
++data class UsuarioPerfil(
++    val nombre: String,
++    val clasesTomadas: Int,
++    val rachaDias: Int
++)
++
++fun clasesDeEjemplo(): List<ClaseGym> = listOf(
++    ClaseGym(1, "Spinning", "Prof. Diego Ruiz", "Hoy", listOf("7:00 AM", "12:00 PM", "6:00 PM")),
++    ClaseGym(2, "Yoga Flow", "Prof. Carla Nuñez", "Hoy", listOf("8:00 AM", "5:00 PM", "7:30 PM")),
++    ClaseGym(3, "Funcional HIIT", "Prof. Renzo Vidal", "Esta semana", listOf("6:00 AM", "1:00 PM", "8:00 PM")),
++    ClaseGym(4, "Zumba", "Prof. Mía Flores", "Esta semana", listOf("9:00 AM", "4:00 PM", "7:00 PM")),
++    ClaseGym(5, "Box Fit", "Prof. Iván Soto", "Esta semana", listOf("6:30 AM", "2:00 PM", "9:00 PM"))
++)
+\ No newline at end of file
+Index: app/build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+new file mode 100644
+--- /dev/null	(date 1790167260954)
++++ b/app/build.gradle.kts	(date 1790167260954)
+@@ -0,0 +1,56 @@
++plugins {
++    alias(libs.plugins.android.application)
++    alias(libs.plugins.kotlin.compose)
++}
++
++android {
++    namespace = "com.yaycate.tecsupfit"
++    compileSdk {
++        version = release(37)
++    }
++
++    defaultConfig {
++        applicationId = "com.yaycate.tecsupfit"
++        minSdk = 24
++        targetSdk = 37
++        versionCode = 1
++        versionName = "1.0"
++
++        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
++    }
++
++    buildTypes {
++        release {
++            optimization {
++                enable = false
++            }
++        }
++    }
++    compileOptions {
++        sourceCompatibility = JavaVersion.VERSION_11
++        targetCompatibility = JavaVersion.VERSION_11
++    }
++    buildFeatures {
++        compose = true
++    }
++}
++
++dependencies {
++    implementation(platform(libs.androidx.compose.bom))
++    implementation(libs.androidx.activity.compose)
++    implementation(libs.androidx.compose.material3)
++    implementation(libs.androidx.compose.ui)
++    implementation(libs.androidx.compose.ui.graphics)
++    implementation(libs.androidx.compose.ui.tooling.preview)
++    implementation(libs.androidx.core.ktx)
++    implementation(libs.androidx.lifecycle.runtime.ktx)
++    testImplementation(libs.junit)
++    implementation("androidx.navigation:navigation-compose:2.8.0")
++    implementation("androidx.compose.material:material-icons-extended:1.7.0")
++    androidTestImplementation(platform(libs.androidx.compose.bom))
++    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
++    androidTestImplementation(libs.androidx.espresso.core)
++    androidTestImplementation(libs.androidx.junit)
++    debugImplementation(libs.androidx.compose.ui.test.manifest)
++    debugImplementation(libs.androidx.compose.ui.tooling)
++}
+\ No newline at end of file
