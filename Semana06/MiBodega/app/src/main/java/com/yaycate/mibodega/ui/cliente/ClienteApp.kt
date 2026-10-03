@@ -51,7 +51,11 @@ fun ClienteApp() {
         composable(Rutas.BIENVENIDA) {
             BienvenidaScreen(
                 onRegistrarse = { navController.navigate(Rutas.REGISTRO) },
-                onIniciarSesion = { /* TODO: pantalla de login, aún no está en el mockup */ },
+                onIniciarSesion = {
+                    navController.navigate(Rutas.INICIO) {
+                        popUpTo(Rutas.BIENVENIDA) { inclusive = true }
+                    }
+                },
                 onTerminos = { /* TODO: abrir términos y condiciones */ }
             )
         }
