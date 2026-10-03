@@ -14,8 +14,11 @@ import com.yaycate.mibodega.ui.cliente.modelo.ItemCarrito
 import com.yaycate.mibodega.ui.cliente.modelo.Producto
 import com.yaycate.mibodega.ui.cliente.modelo.listaProductosFake
 import com.yaycate.mibodega.ui.cliente.screens.bienvenida.BienvenidaScreen
+import com.yaycate.mibodega.ui.cliente.screens.carrito.COSTO_DELIVERY
 import com.yaycate.mibodega.ui.cliente.screens.carrito.CarritoScreen
+import com.yaycate.mibodega.ui.cliente.screens.confirmacion.ConfirmacionScreen
 import com.yaycate.mibodega.ui.cliente.screens.detalle.DetalleProductoScreen
+import com.yaycate.mibodega.ui.cliente.screens.entrega.DatosEntregaScreen
 import com.yaycate.mibodega.ui.cliente.screens.inicio.InicioScreen
 import com.yaycate.mibodega.ui.cliente.screens.registro.RegistroScreen
 
@@ -33,6 +36,8 @@ private object Rutas {
     const val INICIO = "inicio"
     const val DETALLE = "detalle/{productoId}"
     const val CARRITO = "carrito"
+    const val ENTREGA = "entrega"
+    const val CONFIRMACION = "confirmacion"
 
     fun detalle(productoId: Int) = "detalle/$productoId"
 }
@@ -41,8 +46,11 @@ private object Rutas {
 fun ClienteApp() {
     val navController = rememberNavController()
 
-    // El carrito vive aquí arriba, no en ninguna Screen.
+    // El carrito y el historial de pedidos viven aquí arriba.
     var carrito by remember { mutableStateOf<List<ItemCarrito>>(emptyList()) }
+    var contadorPedidos by remember { mutableStateOf(0) }
+    var idPedido by remember { mutableStateOf("") }
+    var totalPedido by remember { mutableStateOf(0.0) }
 
     NavHost(
         navController = navController,
@@ -116,23 +124,44 @@ fun ClienteApp() {
                         when {
                             it.producto.id != producto.id -> it
                             it.cantidad > 1 -> it.copy(cantidad = it.cantidad - 1)
-                            else -> null // si llega a 0, se elimina de la lista
+                            else -> null
                         }
                     }
                 },
                 onEliminar = { producto ->
                     carrito = carrito.filterNot { it.producto.id == producto.id }
                 },
-                onContinuarPedido = { /* TODO: navegar a DatosEntregaScreen */ }
+                onContinuarPedido = { navController.navigate(Rutas.ENTREGA) }
+            )
+        }
+
+        composable(Rutas.ENTREGA) {
+            val totalActual = carrito.sumOf { it.producto.precio * it.cantidad } + COSTO_DELIVERY
+            DatosEntregaScreen(
+                total = totalActual,
+                onVolver = { navController.popBackStack() },
+                onConfirmarPedido = { _, _, _ ->
+                    contadorPedidos += 1
+                    idPedido = "PED-%04d".format(contadorPedidos)
+                    totalPedido = totalActual
+                    carrito = emptyList()
+                    navController.navigate(Rutas.CONFIRMACION) {
+                        popUpTo(Rutas.INICIO)
+                    }
+                }
+            )
+        }
+
+        composable(Rutas.CONFIRMACION) {
+            ConfirmacionScreen(
+                idPedido = idPedido,
+                total = totalPedido,
+                onVolverInicio = { navController.popBackStack(Rutas.INICIO, inclusive = false) }
             )
         }
     }
 }
 
-/**
- * Si el producto ya está en el carrito, le suma la cantidad;
- * si no, lo agrega como un ItemCarrito nuevo.
- */
 private fun agregarOSumarProducto(
     carrito: List<ItemCarrito>,
     producto: Producto,
