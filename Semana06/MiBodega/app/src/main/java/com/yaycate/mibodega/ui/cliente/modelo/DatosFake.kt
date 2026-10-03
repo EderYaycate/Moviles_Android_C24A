@@ -10,7 +10,7 @@ object DatosFake {
             presentacion = "1 kg",
             descripcion = "Arroz extra de grano largo, ideal para el día a día.",
             precio = 4.50,
-            categoria = "Abarrotes",
+            categoria = "Viveres",
             imagenRes = R.drawable.img_1
         ),
         Producto(
@@ -19,8 +19,8 @@ object DatosFake {
             presentacion = "1 L",
             descripcion = "Aceite vegetal para cocinar y freír.",
             precio = 8.90,
-            categoria = "Abarrotes",
-            imagenRes = R.drawable.img_2
+            categoria = "Viveres",
+            imagenRes = R.drawable.img
         ),
         Producto(
             id = 3,
@@ -29,7 +29,7 @@ object DatosFake {
             descripcion = "Leche evaporada entera.",
             precio = 5.20,
             categoria = "Bebidas",
-            imagenRes = R.drawable.img_3
+            imagenRes = R.drawable.img_2
 
         ),
         Producto(
@@ -39,7 +39,7 @@ object DatosFake {
             descripcion = "Galletas de chocolate con crema.",
             precio = 3.50,
             categoria = "Snacks",
-            imagenRes = R.drawable.img
+            imagenRes = R.drawable.img_3
         )
     )
 }

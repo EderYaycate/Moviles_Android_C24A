@@ -30,6 +30,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.yaycate.mibodega.ui.cliente.modelo.DatosFake
+import com.yaycate.mibodega.ui.cliente.modelo.DatosUsuario
 import com.yaycate.mibodega.ui.cliente.modelo.ItemCarrito
 import com.yaycate.mibodega.ui.cliente.modelo.Producto
 import com.yaycate.mibodega.ui.cliente.screens.bienvenida.BienvenidaScreen
@@ -38,6 +39,7 @@ import com.yaycate.mibodega.ui.cliente.screens.confirmacion.ConfirmacionScreen
 import com.yaycate.mibodega.ui.cliente.screens.detalle.DetalleScreen
 import com.yaycate.mibodega.ui.cliente.screens.entrega.EntregaScreen
 import com.yaycate.mibodega.ui.cliente.screens.inicio.InicioScreen
+import com.yaycate.mibodega.ui.cliente.screens.perfil.PerfilScreen
 import com.yaycate.mibodega.ui.cliente.screens.registro.RegistroScreen
 
 object Rutas {
@@ -64,13 +66,6 @@ private val opcionesBarra = listOf(
     OpcionBarra(Rutas.CATEGORIAS, "Categorías", Icons.AutoMirrored.Filled.List),
     OpcionBarra(Rutas.PEDIDOS, "Pedidos", Icons.Default.ShoppingCart),
     OpcionBarra(Rutas.PERFIL, "Perfil", Icons.Default.Person)
-)
-
-private data class DatosUsuario(
-    val nombre: String = "",
-    val telefono: String = "",
-    val direccion: String = "",
-    val referencia: String = ""
 )
 
 private fun sumarProducto(
@@ -187,7 +182,21 @@ fun ClienteApp() {
 
             composable(Rutas.CATEGORIAS) { PantallaMarcador("Categorías") }
             composable(Rutas.PEDIDOS) { PantallaMarcador("Mis pedidos") }
-            composable(Rutas.PERFIL) { PantallaMarcador("Perfil") }
+
+            composable(Rutas.PERFIL) {
+                PerfilScreen(
+                    usuario = usuario,
+                    cantidadCarrito = carrito.sumOf { it.cantidad },
+                    onGuardar = { usuario = it },
+                    onCerrarSesion = {
+                        carrito = emptyList()
+                        usuario = DatosUsuario()
+                        navController.navigate(Rutas.BIENVENIDA) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    }
+                )
+            }
 
             composable(
                 route = "${Rutas.DETALLE}/{productoId}",
