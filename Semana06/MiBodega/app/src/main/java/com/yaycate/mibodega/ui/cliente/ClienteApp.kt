@@ -51,6 +51,8 @@ fun ClienteApp() {
     var contadorPedidos by remember { mutableStateOf(0) }
     var idPedido by remember { mutableStateOf("") }
     var totalPedido by remember { mutableStateOf(0.0) }
+    var direccionPedido by remember { mutableStateOf("") }
+    var referenciaPedido by remember { mutableStateOf("") }
 
     NavHost(
         navController = navController,
@@ -140,10 +142,12 @@ fun ClienteApp() {
             DatosEntregaScreen(
                 total = totalActual,
                 onVolver = { navController.popBackStack() },
-                onConfirmarPedido = { _, _, _ ->
+                onConfirmarPedido = { direccion, referencia, _ ->
                     contadorPedidos += 1
-                    idPedido = "PED-%04d".format(contadorPedidos)
+                    idPedido = "%04d".format(contadorPedidos)
                     totalPedido = totalActual
+                    direccionPedido = direccion
+                    referenciaPedido = referencia
                     carrito = emptyList()
                     navController.navigate(Rutas.CONFIRMACION) {
                         popUpTo(Rutas.INICIO)
@@ -156,6 +160,8 @@ fun ClienteApp() {
             ConfirmacionScreen(
                 idPedido = idPedido,
                 total = totalPedido,
+                direccion = direccionPedido,
+                referencia = referenciaPedido,
                 onVolverInicio = { navController.popBackStack(Rutas.INICIO, inclusive = false) }
             )
         }

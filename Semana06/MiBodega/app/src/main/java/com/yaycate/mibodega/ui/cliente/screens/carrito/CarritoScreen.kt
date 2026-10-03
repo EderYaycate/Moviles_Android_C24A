@@ -29,6 +29,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,6 +42,8 @@ import com.yaycate.mibodega.ui.componentes.SelectorCantidad
 import com.yaycate.mibodega.ui.theme.BodegaTheme
 import com.yaycate.mibodega.ui.theme.GrisClaro
 import com.yaycate.mibodega.ui.theme.VerdeBodega
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 
 const val COSTO_DELIVERY = 4.00
 
@@ -131,12 +135,21 @@ private fun FilaCarrito(
                 .background(GrisClaro, RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.ShoppingBasket,
-                contentDescription = item.producto.nombre,
-                tint = VerdeBodega,
-                modifier = Modifier.size(26.dp)
-            )
+            if (item.producto.imagenRes != null) {
+                Image(
+                    painter = painterResource(id = item.producto.imagenRes),
+                    contentDescription = item.producto.nombre,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.padding(4.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.ShoppingBasket,
+                    contentDescription = item.producto.nombre,
+                    tint = VerdeBodega,
+                    modifier = Modifier.size(26.dp)
+                )
+            }
         }
 
         Spacer(Modifier.width(12.dp))
@@ -169,7 +182,6 @@ private fun FilaCarrito(
         }
     }
 }
-
 @Composable
 private fun ResumenYBoton(
     subtotal: Double,

@@ -1,12 +1,12 @@
 package com.yaycate.mibodega.ui.componentes
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,23 +20,21 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yaycate.mibodega.ui.cliente.modelo.Producto
 import com.yaycate.mibodega.ui.theme.GrisClaro
 import com.yaycate.mibodega.ui.theme.VerdeBodega
 
-/**
- * Tarjeta de producto usada en el grid de Inicio.
- * Solo muestra datos y avisa cuando la tocan o cuando tocan "+";
- * no sabe nada de navegación ni del carrito.
- */
 @Composable
 fun ProductoCard(
     producto: Producto,
@@ -45,59 +43,68 @@ fun ProductoCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(10.dp)) {
-            // Placeholder de imagen: reemplázalo por Image(painterResource(...))
-            // cuando tengan las fotos reales de cada producto.
+        Column(modifier = Modifier.padding(12.dp)) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1.3f)
-                    .background(GrisClaro, RoundedCornerShape(10.dp)),
+                    .height(110.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(GrisClaro),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.ShoppingBasket,
-                    contentDescription = producto.nombre,
-                    tint = VerdeBodega,
-                    modifier = Modifier.size(36.dp)
-                )
+                if (producto.imagenRes != null) {
+                    Image(
+                        painter = painterResource(id = producto.imagenRes),
+                        contentDescription = producto.nombre,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.ShoppingBasket,
+                        contentDescription = producto.nombre,
+                        tint = VerdeBodega,
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = producto.nombre,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                maxLines = 1
             )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "S/ %.2f".format(producto.precio),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = VerdeBodega
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = VerdeBodega,
+                    modifier = Modifier.weight(1f)
                 )
+
                 IconButton(
                     onClick = onAgregar,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .background(VerdeBodega, CircleShape)
+                    modifier = Modifier.size(32.dp),
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = VerdeBodega)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Agregar ${producto.nombre}",
+                        contentDescription = "Agregar",
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(18.dp)
                     )
@@ -106,4 +113,3 @@ fun ProductoCard(
         }
     }
 }
-
