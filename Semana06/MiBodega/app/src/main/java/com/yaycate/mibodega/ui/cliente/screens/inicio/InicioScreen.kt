@@ -3,6 +3,7 @@ package com.yaycate.mibodega.ui.cliente.screens.inicio
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,7 +15,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -41,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,11 +56,8 @@ import com.yaycate.mibodega.ui.theme.VerdeBodega
 
 /**
  * Pantalla 3: Inicio / Productos (mockup "Cliente").
- * La más completa: Scaffold (topBar + bottomBar), LazyRow de categorías
- * y LazyVerticalGrid de productos.
- *
- * @param productos lista completa (fake por ahora, luego vendrá de un ViewModel)
- * @param cantidadCarrito para el badge del carrito en la topBar
+ * Scaffold (topBar + bottomBar), LazyRow de categorías,
+ * buscador en tiempo real y LazyVerticalGrid de productos.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -143,26 +141,39 @@ fun InicioScreen(
                 }
             }
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(productosFiltrados) { producto ->
-                    ProductoCard(
-                        producto = producto,
-                        onClick = { onProductoClick(producto) },
-                        onAgregar = { onAgregarProducto(producto) }
+            if (productosFiltrados.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No se encontraron productos",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(vertical = 12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(productosFiltrados) { producto ->
+                        ProductoCard(
+                            producto = producto,
+                            onClick = { onProductoClick(producto) },
+                            onAgregar = { onAgregarProducto(producto) }
+                        )
+                    }
                 }
             }
         }
     }
 }
-
-// Sub-composables PRIVADOS: solo los usa esta pantalla.
 
 @Composable
 private fun ChipCategoria(
