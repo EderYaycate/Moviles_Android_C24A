@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -25,8 +26,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+
+private val MoradoPrincipal = Color(0xFF5E2D91)
+private val LilaAvatar = Color(0xFFE6D9F5)
+private val LilaSeleccion = Color(0xFFEBDDF7)
+private val TextoOscuro = Color(0xFF1C1B1F)
+private val TextoGris = Color(0xFF6B6B6B)
 
 data class Destino(
     val ruta: String,
@@ -55,18 +64,28 @@ fun EncabezadoDrawer(nombre: String, correo: String) {
             modifier = Modifier
                 .size(64.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary),
+                .background(LilaAvatar),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = iniciales,
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onPrimary
+                fontWeight = FontWeight.Bold,
+                color = MoradoPrincipal
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
-        Text(nombre, style = MaterialTheme.typography.titleMedium)
-        Text(correo, style = MaterialTheme.typography.bodySmall)
+        Text(
+            nombre,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = TextoOscuro
+        )
+        Text(
+            correo,
+            style = MaterialTheme.typography.bodySmall,
+            color = TextoGris
+        )
     }
 }
 
@@ -74,9 +93,18 @@ fun EncabezadoDrawer(nombre: String, correo: String) {
 fun AppDrawer(
     rutaActual: String?,
     cantidadFavoritos: Int,
-    onItemClick: (Destino) -> Unit
+    onItemClick: (Destino) -> Unit,
+    onCerrarSesion: () -> Unit
 ) {
-    ModalDrawerSheet {
+    val colores = NavigationDrawerItemDefaults.colors(
+        selectedContainerColor = LilaSeleccion,
+        selectedTextColor = MoradoPrincipal,
+        selectedIconColor = MoradoPrincipal,
+        unselectedTextColor = TextoOscuro,
+        unselectedIconColor = TextoGris
+    )
+
+    ModalDrawerSheet(drawerContainerColor = Color.White) {
         EncabezadoDrawer(
             nombre = "Estudiante TECSUP",
             correo = "usuario@tecsup.edu.pe"
@@ -94,8 +122,19 @@ fun AppDrawer(
                 },
                 selected = destino.ruta == rutaActual,
                 onClick = { onItemClick(destino) },
+                colors = colores,
                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
             )
         }
+        NavigationDrawerItem(
+            label = { Text("Cerrar sesión") },
+            icon = {
+                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null)
+            },
+            selected = false,
+            onClick = onCerrarSesion,
+            colors = colores,
+            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+        )
     }
 }

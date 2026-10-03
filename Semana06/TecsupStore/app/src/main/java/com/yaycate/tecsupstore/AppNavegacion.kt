@@ -60,10 +60,13 @@ fun AppNavegacion() {
                         restoreState = true
                     }
                     scope.launch { drawerState.close() }
+                },
+                onCerrarSesion = {
+                    scope.launch { drawerState.close() }
+
                 }
             )
         }
-
     ) {
         Scaffold(
             topBar = {
@@ -93,10 +96,10 @@ fun AppNavegacion() {
             NavHost(
                 navController = navController,
                 startDestination = "inicio",
+
                 modifier = Modifier.padding(padding)
             ) {
                 composable("inicio") {
-
                     PantallaInicio(
                         favoritos = favoritos,
                         onToggleFavorito = alternarFavorito
