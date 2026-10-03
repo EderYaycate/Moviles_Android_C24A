@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -72,6 +73,7 @@ fun EncabezadoDrawer(nombre: String, correo: String) {
 @Composable
 fun AppDrawer(
     rutaActual: String?,
+    cantidadFavoritos: Int,
     onItemClick: (Destino) -> Unit
 ) {
     ModalDrawerSheet {
@@ -85,6 +87,11 @@ fun AppDrawer(
             NavigationDrawerItem(
                 label = { Text(destino.titulo) },
                 icon = { Icon(destino.icono, contentDescription = null) },
+                badge = {
+                    if (destino.ruta == "favoritos" && cantidadFavoritos > 0) {
+                        Badge { Text(cantidadFavoritos.toString()) }
+                    }
+                },
                 selected = destino.ruta == rutaActual,
                 onClick = { onItemClick(destino) },
                 modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
