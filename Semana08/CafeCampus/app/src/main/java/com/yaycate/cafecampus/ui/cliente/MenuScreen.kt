@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -36,6 +37,7 @@ fun MenuScreen(
     onProductoClick: (Int) -> Unit,
     onVerCarrito: () -> Unit,
     onVerPedidos: () -> Unit,
+    onAjustes: () -> Unit,
     onCerrarSesion: () -> Unit
 ) {
     val productos by vm.productos.collectAsState()
@@ -48,6 +50,12 @@ fun MenuScreen(
                 titulo = "Menú",
                 acciones = {
                     TextButton(onClick = onCerrarSesion) { Text("Salir") }
+                    IconButton(onClick = onAjustes) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Ajustes"
+                        )
+                    }
                     IconButton(onClick = onVerPedidos) {
                         Icon(
                             imageVector = Icons.Default.List,

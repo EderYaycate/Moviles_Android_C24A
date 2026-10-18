@@ -16,9 +16,10 @@ import com.yaycate.cafecampus.data.prefs.PreferenciasStore
 import com.yaycate.cafecampus.data.repository.CafeRepository
 import com.yaycate.cafecampus.data.repository.CafeRepositoryRoom
 import com.yaycate.cafecampus.model.Rol
+import com.yaycate.cafecampus.ui.cliente.AjustesScreen
 import com.yaycate.cafecampus.ui.cliente.ConfirmarPedidoScreen
-import com.yaycate.cafecampus.ui.cliente.DetalleProductoScreen
 import com.yaycate.cafecampus.ui.cliente.DetallePedidoAdminScreen
+import com.yaycate.cafecampus.ui.cliente.DetalleProductoScreen
 import com.yaycate.cafecampus.ui.cliente.FormularioProductoScreen
 import com.yaycate.cafecampus.ui.cliente.LoginScreen
 import com.yaycate.cafecampus.ui.cliente.MenuAdminScreen
@@ -35,13 +36,6 @@ import com.yaycate.cafecampus.viewmodel.PanelViewModel
 import com.yaycate.cafecampus.viewmodel.PedidosAdminViewModel
 import com.yaycate.cafecampus.viewmodel.PedidosClienteViewModel
 import com.yaycate.cafecampus.viewmodel.SesionViewModel
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.runtime.remember as recordar
 
 @Composable
 fun NavCafe() {
@@ -103,6 +97,7 @@ fun NavCafe() {
                 onProductoClick = { id -> nav.navigate("detalle/$id") },
                 onVerCarrito = { nav.navigate(Ruta.Confirmar.ruta) },
                 onVerPedidos = { nav.navigate(Ruta.Pedidos.ruta) },
+                onAjustes = { nav.navigate(Ruta.Ajustes.ruta) },
                 onCerrarSesion = cerrarSesion
             )
         }
@@ -157,6 +152,7 @@ fun NavCafe() {
                 vm = panelVm,
                 onVerPedidos = { nav.navigate(Ruta.PedidosAdmin.ruta) },
                 onGestionarMenu = { nav.navigate(Ruta.MenuAdmin.ruta) },
+                onAjustes = { nav.navigate(Ruta.Ajustes.ruta) },
                 onCerrarSesion = cerrarSesion
             )
         }
@@ -204,6 +200,16 @@ fun NavCafe() {
                 vm = menuAdminVm,
                 productoId = id,
                 onGuardado = { nav.popBackStack() },
+                onVolver = { nav.popBackStack() }
+            )
+        }
+
+        // ----- Común -----
+
+        composable(Ruta.Ajustes.ruta) {
+            AjustesScreen(
+                prefs = prefs,
+                onCerrarSesion = cerrarSesion,
                 onVolver = { nav.popBackStack() }
             )
         }
