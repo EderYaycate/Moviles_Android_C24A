@@ -13,13 +13,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,6 +40,7 @@ import com.yaycate.cafecampus.ui.theme.EstadoListo
 import com.yaycate.cafecampus.ui.theme.EstadoPreparando
 import com.yaycate.cafecampus.ui.theme.EstadoRecibido
 import com.yaycate.cafecampus.viewmodel.PanelViewModel
+import com.yaycate.cafecampus.viewmodel.VentaHora
 
 @Composable
 fun PanelScreen(
@@ -60,6 +67,32 @@ fun PanelScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Cafetería · Hoy",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                IconButton(onClick = onVerPedidos) {
+                    BadgedBox(
+                        badge = {
+                            if (recibidos > 0) {
+                                Badge { Text(recibidos.toString()) }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = "Pedidos nuevos"
+                        )
+                    }
+                }
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -217,7 +250,7 @@ private fun TarjetaEstado(
 }
 
 @Composable
-private fun GraficoPorHora(datos: List<com.yaycate.cafecampus.viewmodel.VentaHora>) {
+private fun GraficoPorHora(datos: List<VentaHora>) {
     val maximo = (datos.maxOfOrNull { it.cantidad } ?: 0).coerceAtLeast(1)
 
     Card(

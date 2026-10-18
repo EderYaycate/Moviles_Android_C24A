@@ -19,6 +19,7 @@ class PreferenciasStore(private val context: Context) {
     private val clienteIdKey = intPreferencesKey("clienteId")
     private val modoOscuroKey = booleanPreferencesKey("modoOscuro")
     private val recibirKey = booleanPreferencesKey("recibirPedidos")
+    private val notificacionesKey = booleanPreferencesKey("notificaciones")
 
     // Lectura (Flow, una por preferencia)
     val perfilActivo: Flow<String> =
@@ -33,6 +34,10 @@ class PreferenciasStore(private val context: Context) {
 
     val recibirPedidos: Flow<Boolean> =
         context.dataStore.data.map { it[recibirKey] ?: true }
+
+    // Avisos de nuevos pedidos para el administrador
+    val notificaciones: Flow<Boolean> =
+        context.dataStore.data.map { it[notificacionesKey] ?: true }
 
     // Escritura (suspend)
     suspend fun guardarPerfil(rol: Rol) {
@@ -49,6 +54,10 @@ class PreferenciasStore(private val context: Context) {
 
     suspend fun guardarRecibirPedidos(b: Boolean) {
         context.dataStore.edit { it[recibirKey] = b }
+    }
+
+    suspend fun guardarNotificaciones(b: Boolean) {
+        context.dataStore.edit { it[notificacionesKey] = b }
     }
 
     suspend fun cerrarSesion() {

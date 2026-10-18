@@ -45,6 +45,7 @@ fun AjustesScreen(
 ) {
     val perfil by prefs.perfilActivo.collectAsState(initial = "")
     val modoOscuro by prefs.modoOscuro.collectAsState(initial = false)
+    val notificaciones by prefs.notificaciones.collectAsState(initial = true)
     val recibirPedidos by prefs.recibirPedidos.collectAsState(initial = true)
     val scope = rememberCoroutineScope()
 
@@ -143,6 +144,15 @@ fun AjustesScreen(
                 checked = modoOscuro,
                 onCambio = { valor ->
                     scope.launch { prefs.guardarModoOscuro(valor) }
+                }
+            )
+
+            FilaAjuste(
+                titulo = "Notificaciones",
+                subtitulo = "Avisar nuevos pedidos",
+                checked = notificaciones,
+                onCambio = { valor ->
+                    scope.launch { prefs.guardarNotificaciones(valor) }
                 }
             )
 
