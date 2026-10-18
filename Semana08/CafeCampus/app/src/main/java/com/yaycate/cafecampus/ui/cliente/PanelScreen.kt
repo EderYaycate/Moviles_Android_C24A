@@ -26,6 +26,7 @@ import com.yaycate.cafecampus.viewmodel.PanelViewModel
 fun PanelScreen(
     vm: PanelViewModel,
     onVerPedidos: () -> Unit,
+    onGestionarMenu: () -> Unit,
     onCerrarSesion: () -> Unit
 ) {
     val ventas by vm.ventasHoy.collectAsState()
@@ -80,6 +81,11 @@ fun PanelScreen(
             CafeButton(
                 texto = "Gestionar pedidos",
                 onClick = onVerPedidos
+            )
+
+            CafeButton(
+                texto = "Gestionar menú",
+                onClick = onGestionarMenu
             )
         }
     }

@@ -6,6 +6,7 @@ import com.yaycate.cafecampus.data.local.relation.PedidoConDetalle
 import com.yaycate.cafecampus.data.repository.CafeRepository
 import com.yaycate.cafecampus.model.EstadoPedido
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,4 +39,7 @@ class PedidosAdminViewModel(private val repo: CafeRepository) : ViewModel() {
             repo.cambiarEstado(pedidoId, nuevo)
         }
     }
+
+    // Observa un pedido concreto; se actualiza cuando cambia su estado
+    fun observarPedido(id: Int): Flow<PedidoConDetalle?> = repo.observarPedido(id)
 }

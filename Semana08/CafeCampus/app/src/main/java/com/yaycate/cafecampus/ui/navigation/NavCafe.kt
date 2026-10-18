@@ -18,7 +18,10 @@ import com.yaycate.cafecampus.data.repository.CafeRepositoryRoom
 import com.yaycate.cafecampus.model.Rol
 import com.yaycate.cafecampus.ui.cliente.ConfirmarPedidoScreen
 import com.yaycate.cafecampus.ui.cliente.DetalleProductoScreen
+import com.yaycate.cafecampus.ui.cliente.DetallePedidoAdminScreen
+import com.yaycate.cafecampus.ui.cliente.FormularioProductoScreen
 import com.yaycate.cafecampus.ui.cliente.LoginScreen
+import com.yaycate.cafecampus.ui.cliente.MenuAdminScreen
 import com.yaycate.cafecampus.ui.cliente.MenuScreen
 import com.yaycate.cafecampus.ui.cliente.PanelScreen
 import com.yaycate.cafecampus.ui.cliente.PedidosAdminScreen
@@ -26,11 +29,19 @@ import com.yaycate.cafecampus.ui.cliente.PedidosScreen
 import com.yaycate.cafecampus.ui.cliente.SeguimientoPedidoScreen
 import com.yaycate.cafecampus.ui.cliente.SplashScreen
 import com.yaycate.cafecampus.viewmodel.CafeViewModelFactory
+import com.yaycate.cafecampus.viewmodel.MenuAdminViewModel
 import com.yaycate.cafecampus.viewmodel.MenuViewModel
 import com.yaycate.cafecampus.viewmodel.PanelViewModel
 import com.yaycate.cafecampus.viewmodel.PedidosAdminViewModel
 import com.yaycate.cafecampus.viewmodel.PedidosClienteViewModel
 import com.yaycate.cafecampus.viewmodel.SesionViewModel
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.runtime.remember as recordar
 
 @Composable
 fun NavCafe() {
@@ -50,6 +61,7 @@ fun NavCafe() {
     val pedidosVm: PedidosClienteViewModel = viewModel(factory = factory)
     val panelVm: PanelViewModel = viewModel(factory = factory)
     val pedidosAdminVm: PedidosAdminViewModel = viewModel(factory = factory)
+    val menuAdminVm: MenuAdminViewModel = viewModel(factory = factory)
 
     // Cierra la sesión y vuelve al login borrando todo el historial de navegación
     val cerrarSesion: () -> Unit = {
@@ -82,6 +94,8 @@ fun NavCafe() {
                 }
             }
         }
+
+        // ----- Cliente -----
 
         composable(Ruta.Menu.ruta) {
             MenuScreen(
@@ -136,10 +150,13 @@ fun NavCafe() {
             )
         }
 
+        // ----- Administrador -----
+
         composable(Ruta.Panel.ruta) {
             PanelScreen(
                 vm = panelVm,
                 onVerPedidos = { nav.navigate(Ruta.PedidosAdmin.ruta) },
+                onGestionarMenu = { nav.navigate(Ruta.MenuAdmin.ruta) },
                 onCerrarSesion = cerrarSesion
             )
         }
@@ -147,6 +164,46 @@ fun NavCafe() {
         composable(Ruta.PedidosAdmin.ruta) {
             PedidosAdminScreen(
                 vm = pedidosAdminVm,
+                onPedidoClick = { id -> nav.navigate("detalle_pedido_admin/$id") },
+                onVolver = { nav.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Ruta.DetallePedidoAdmin.ruta,
+            arguments = listOf(navArgument("pedidoId") { type = NavType.IntType })
+        ) { entrada ->
+            val id = entrada.arguments?.getInt("pedidoId") ?: -1
+            DetallePedidoAdminScreen(
+                vm = pedidosAdminVm,
+                pedidoId = id,
+                onVolver = { nav.popBackStack() }
+            )
+        }
+
+        composable(Ruta.MenuAdmin.ruta) {
+            MenuAdminScreen(
+                vm = menuAdminVm,
+                onEditar = { id -> nav.navigate("formulario_producto?productoId=$id") },
+                onNuevo = { nav.navigate("formulario_producto?productoId=-1") },
+                onVolver = { nav.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Ruta.FormularioProducto.ruta,
+            arguments = listOf(
+                navArgument("productoId") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                }
+            )
+        ) { entrada ->
+            val id = entrada.arguments?.getInt("productoId") ?: -1
+            FormularioProductoScreen(
+                vm = menuAdminVm,
+                productoId = id,
+                onGuardado = { nav.popBackStack() },
                 onVolver = { nav.popBackStack() }
             )
         }

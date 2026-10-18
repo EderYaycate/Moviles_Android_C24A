@@ -31,6 +31,7 @@ import com.yaycate.cafecampus.viewmodel.PedidosAdminViewModel
 @Composable
 fun PedidosAdminScreen(
     vm: PedidosAdminViewModel,
+    onPedidoClick: (Int) -> Unit,
     onVolver: () -> Unit
 ) {
     val pedidos by vm.pedidos.collectAsState()
@@ -79,7 +80,10 @@ fun PedidosAdminScreen(
                     items(pedidos, key = { it.pedido.id }) { item ->
                         val actual = EstadoPedido.valueOf(item.pedido.estado)
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            PedidoCard(pedido = item.pedido, onClick = {})
+                            PedidoCard(
+                                pedido = item.pedido,
+                                onClick = { onPedidoClick(item.pedido.id) }
+                            )
                             siguienteEstado(actual)?.let { sig ->
                                 CafeButton(
                                     texto = "Pasar a ${etiquetaEstado(sig)}",
