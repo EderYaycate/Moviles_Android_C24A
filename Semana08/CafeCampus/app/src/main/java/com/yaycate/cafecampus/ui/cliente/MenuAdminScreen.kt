@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -22,15 +24,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.yaycate.cafecampus.data.local.entity.Producto
 import com.yaycate.cafecampus.ui.components.AppTopBar
+import com.yaycate.cafecampus.ui.components.ProductoIcono
 import com.yaycate.cafecampus.viewmodel.MenuAdminViewModel
 
 @Composable
@@ -41,6 +50,7 @@ fun MenuAdminScreen(
     onVolver: () -> Unit
 ) {
     val productos by vm.productos.collectAsState()
+    var aEliminar by remember { mutableStateOf<Producto?>(null) }
 
     Scaffold(
         topBar = { AppTopBar(titulo = "Gestionar menú", onVolver = onVolver) },
@@ -87,6 +97,13 @@ fun MenuAdminScreen(
                                 .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            ProductoIcono(
+                                icono = producto.icono,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .padding(end = 4.dp)
+                            )
+
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = producto.nombre,
@@ -96,16 +113,28 @@ fun MenuAdminScreen(
                                     text = "S/ %.2f".format(producto.precio) + " · " + producto.categoria,
                                     style = MaterialTheme.typography.bodySmall
                                 )
-                                Text(
-                                    text = if (producto.disponible) "Disponible" else "Agotado",
-                                    style = MaterialTheme.typography.labelSmall,
+                                Surface(
+                                    shape = RoundedCornerShape(50),
                                     color = if (producto.disponible) {
-                                        MaterialTheme.colorScheme.primary
+                                        MaterialTheme.colorScheme.primaryContainer
                                     } else {
-                                        MaterialTheme.colorScheme.error
-                                    }
-                                )
+                                        MaterialTheme.colorScheme.errorContainer
+                                    },
+                                    modifier = Modifier.padding(top = 4.dp)
+                                ) {
+                                    Text(
+                                        text = if (producto.disponible) "Disponible" else "Agotado",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (producto.disponible) {
+                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                        } else {
+                                            MaterialTheme.colorScheme.onErrorContainer
+                                        },
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    )
+                                }
                             }
+
                             Switch(
                                 checked = producto.disponible,
                                 onCheckedChange = { vm.cambiarDisponibilidad(producto.id, it) }
@@ -116,7 +145,7 @@ fun MenuAdminScreen(
                                     contentDescription = "Editar"
                                 )
                             }
-                            IconButton(onClick = { vm.eliminar(producto) }) {
+                            IconButton(onClick = { aEliminar = producto }) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
                                     contentDescription = "Eliminar",
@@ -128,5 +157,26 @@ fun MenuAdminScreen(
                 }
             }
         }
+    }
+
+    aEliminar?.let { producto ->
+        AlertDialog(
+            onDismissRequest = { aEliminar = null },
+            title = { Text("Eliminar producto") },
+            text = { Text("¿Seguro que quieres eliminar \"${producto.nombre}\"? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.eliminar(producto)
+                    aEliminar = null
+                }) {
+                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { aEliminar = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
