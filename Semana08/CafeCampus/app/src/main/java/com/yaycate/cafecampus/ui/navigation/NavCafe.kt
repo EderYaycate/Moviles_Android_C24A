@@ -1,15 +1,9 @@
 package com.yaycate.cafecampus.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -26,11 +20,15 @@ import com.yaycate.cafecampus.ui.cliente.ConfirmarPedidoScreen
 import com.yaycate.cafecampus.ui.cliente.DetalleProductoScreen
 import com.yaycate.cafecampus.ui.cliente.LoginScreen
 import com.yaycate.cafecampus.ui.cliente.MenuScreen
+import com.yaycate.cafecampus.ui.cliente.PanelScreen
+import com.yaycate.cafecampus.ui.cliente.PedidosAdminScreen
 import com.yaycate.cafecampus.ui.cliente.PedidosScreen
 import com.yaycate.cafecampus.ui.cliente.SeguimientoPedidoScreen
 import com.yaycate.cafecampus.ui.cliente.SplashScreen
 import com.yaycate.cafecampus.viewmodel.CafeViewModelFactory
 import com.yaycate.cafecampus.viewmodel.MenuViewModel
+import com.yaycate.cafecampus.viewmodel.PanelViewModel
+import com.yaycate.cafecampus.viewmodel.PedidosAdminViewModel
 import com.yaycate.cafecampus.viewmodel.PedidosClienteViewModel
 import com.yaycate.cafecampus.viewmodel.SesionViewModel
 
@@ -46,10 +44,20 @@ fun NavCafe() {
     // Id del cliente guardado en DataStore; sirve aunque se haya reabierto la app
     val clienteId by prefs.clienteId.collectAsState(initial = -1)
 
-    // Instancias compartidas entre pantallas del flujo del cliente
+    // Instancias compartidas entre pantallas de cada flujo
     val sesionVm: SesionViewModel = viewModel(factory = factory)
     val menuVm: MenuViewModel = viewModel(factory = factory)
     val pedidosVm: PedidosClienteViewModel = viewModel(factory = factory)
+    val panelVm: PanelViewModel = viewModel(factory = factory)
+    val pedidosAdminVm: PedidosAdminViewModel = viewModel(factory = factory)
+
+    // Cierra la sesión y vuelve al login borrando todo el historial de navegación
+    val cerrarSesion: () -> Unit = {
+        sesionVm.cerrarSesion()
+        nav.navigate(Ruta.Login.ruta) {
+            popUpTo(nav.graph.id) { inclusive = true }
+        }
+    }
 
     NavHost(navController = nav, startDestination = Ruta.Splash.ruta) {
 
@@ -80,7 +88,8 @@ fun NavCafe() {
                 vm = menuVm,
                 onProductoClick = { id -> nav.navigate("detalle/$id") },
                 onVerCarrito = { nav.navigate(Ruta.Confirmar.ruta) },
-                onVerPedidos = { nav.navigate(Ruta.Pedidos.ruta) }
+                onVerPedidos = { nav.navigate(Ruta.Pedidos.ruta) },
+                onCerrarSesion = cerrarSesion
             )
         }
 
@@ -127,17 +136,19 @@ fun NavCafe() {
             )
         }
 
-        // Provisional: se reemplaza en el paso del panel de admin
-        composable(Ruta.Panel.ruta) { PantallaProvisional("Panel (pendiente)") }
-    }
-}
+        composable(Ruta.Panel.ruta) {
+            PanelScreen(
+                vm = panelVm,
+                onVerPedidos = { nav.navigate(Ruta.PedidosAdmin.ruta) },
+                onCerrarSesion = cerrarSesion
+            )
+        }
 
-@Composable
-private fun PantallaProvisional(titulo: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(titulo, style = MaterialTheme.typography.titleMedium)
+        composable(Ruta.PedidosAdmin.ruta) {
+            PedidosAdminScreen(
+                vm = pedidosAdminVm,
+                onVolver = { nav.popBackStack() }
+            )
+        }
     }
 }

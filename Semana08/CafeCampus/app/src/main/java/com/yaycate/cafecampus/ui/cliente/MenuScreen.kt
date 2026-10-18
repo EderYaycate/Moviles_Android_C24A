@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,7 +35,8 @@ fun MenuScreen(
     vm: MenuViewModel,
     onProductoClick: (Int) -> Unit,
     onVerCarrito: () -> Unit,
-    onVerPedidos: () -> Unit
+    onVerPedidos: () -> Unit,
+    onCerrarSesion: () -> Unit
 ) {
     val productos by vm.productos.collectAsState()
     val carrito by vm.carrito.collectAsState()
@@ -45,6 +47,7 @@ fun MenuScreen(
             AppTopBar(
                 titulo = "Menú",
                 acciones = {
+                    TextButton(onClick = onCerrarSesion) { Text("Salir") }
                     IconButton(onClick = onVerPedidos) {
                         Icon(
                             imageVector = Icons.Default.List,
