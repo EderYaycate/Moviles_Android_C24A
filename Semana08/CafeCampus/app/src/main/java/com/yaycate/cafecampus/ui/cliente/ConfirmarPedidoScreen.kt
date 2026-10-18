@@ -22,6 +22,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.ui.components.AppTopBar
 import com.yaycate.cafecampus.ui.components.CafeButton
@@ -29,12 +30,14 @@ import com.yaycate.cafecampus.ui.components.CafeTextField
 import com.yaycate.cafecampus.viewmodel.MenuViewModel
 import kotlinx.coroutines.launch
 
-private val opcionesPago = listOf("Efectivo", "Yape", "Tarjeta")
+private val opcionesPago = listOf("Pagar en caja", "Yape / Plin")
+private val opcionesHora = listOf("Ahora", "10:30", "11:00", "11:30")
 
 @Composable
 fun ConfirmarPedidoScreen(
     vm: MenuViewModel,
     clienteId: Int,
+    recibirPedidos: Boolean,
     onConfirmado: (Int) -> Unit,
     onVolver: () -> Unit
 ) {
@@ -47,7 +50,7 @@ fun ConfirmarPedidoScreen(
     var nota by rememberSaveable { mutableStateOf("") }
 
     Scaffold(
-        topBar = { AppTopBar(titulo = "Tu pedido", onVolver = onVolver) }
+        topBar = { AppTopBar(titulo = "Confirmar pedido", onVolver = onVolver) }
     ) { relleno ->
         Column(
             modifier = Modifier
@@ -57,11 +60,25 @@ fun ConfirmarPedidoScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if (!recibirPedidos) {
+                Text(
+                    text = "Cafetería cerrada por ahora. No se pueden hacer pedidos.",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
             if (carrito.isEmpty()) {
                 Text(
                     text = "Tu carrito está vacío",
                     style = MaterialTheme.typography.bodyLarge
                 )
+                OutlinedButton(
+                    onClick = onVolver,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Ir al menú")
+                }
             } else {
                 carrito.forEach { item ->
                     Row(
@@ -69,7 +86,7 @@ fun ConfirmarPedidoScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = item.nombre,
                                 style = MaterialTheme.typography.titleSmall
@@ -79,6 +96,13 @@ fun ConfirmarPedidoScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
+                            if (item.nota.isNotBlank()) {
+                                Text(
+                                    text = "Nota: ${item.nota}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             OutlinedButton(
@@ -99,9 +123,18 @@ fun ConfirmarPedidoScreen(
                 }
 
                 Text(
-                    text = "Total: S/ %.2f".format(total),
-                    style = MaterialTheme.typography.titleLarge
+                    text = "Hora de recojo",
+                    style = MaterialTheme.typography.titleSmall
                 )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    opcionesHora.forEach { hora ->
+                        FilterChip(
+                            selected = horaRecojo == hora,
+                            onClick = { horaRecojo = hora },
+                            label = { Text(hora) }
+                        )
+                    }
+                }
 
                 Text(
                     text = "Forma de pago",
@@ -118,26 +151,44 @@ fun ConfirmarPedidoScreen(
                 }
 
                 CafeTextField(
-                    valor = horaRecojo,
-                    onValorChange = { horaRecojo = it },
-                    etiqueta = "Hora de recojo (ej. 13:30)",
-                    modifier = Modifier.fillMaxWidth()
-                )
-                CafeTextField(
                     valor = nota,
                     onValorChange = { nota = it },
-                    etiqueta = "Nota (opcional)",
+                    etiqueta = "Nota general (opcional)",
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Subtotal", style = MaterialTheme.typography.bodyMedium)
+                        Text("S/ %.2f".format(total), style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Servicio", style = MaterialTheme.typography.bodyMedium)
+                        Text("S/ 0.00", style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(
+                            text = "Total",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "S/ %.2f".format(total),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
                 CafeButton(
                     texto = "Confirmar pedido",
-                    enabled = horaRecojo.isNotBlank() && clienteId > 0,
+                    enabled = recibirPedidos && horaRecojo.isNotBlank() && clienteId > 0,
                     onClick = {
                         scope.launch {
                             val id = vm.confirmarPedido(
                                 clienteId = clienteId,
-                                horaRecojo = horaRecojo.trim(),
+                                horaRecojo = horaRecojo,
                                 pago = pago,
                                 nota = nota.trim()
                             )
@@ -145,6 +196,13 @@ fun ConfirmarPedidoScreen(
                         }
                     }
                 )
+
+                OutlinedButton(
+                    onClick = onVolver,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Seguir pidiendo")
+                }
             }
         }
     }
