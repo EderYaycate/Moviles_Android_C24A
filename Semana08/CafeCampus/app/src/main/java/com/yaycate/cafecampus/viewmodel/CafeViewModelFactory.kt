@@ -11,13 +11,13 @@ class CafeViewModelFactory(
     private val prefs: PreferenciasStore
 ) : ViewModelProvider.Factory {
 
-    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         return when {
             modelClass.isAssignableFrom(SesionViewModel::class.java) ->
-                SesionViewModel(repo, prefs)
-            // Los demás ViewModels se agregan aquí en sus pasos
+                SesionViewModel(repo, prefs) as T
+            modelClass.isAssignableFrom(MenuViewModel::class.java) ->
+                MenuViewModel(repo) as T
             else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
-        } as T
+        }
     }
 }

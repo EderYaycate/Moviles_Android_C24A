@@ -10,17 +10,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.yaycate.cafecampus.data.local.CafeDatabase
 import com.yaycate.cafecampus.data.prefs.PreferenciasStore
 import com.yaycate.cafecampus.data.repository.CafeRepository
 import com.yaycate.cafecampus.data.repository.CafeRepositoryRoom
 import com.yaycate.cafecampus.model.Rol
+import com.yaycate.cafecampus.ui.cliente.DetalleProductoScreen
 import com.yaycate.cafecampus.ui.cliente.LoginScreen
+import com.yaycate.cafecampus.ui.cliente.MenuScreen
 import com.yaycate.cafecampus.ui.cliente.SplashScreen
 import com.yaycate.cafecampus.viewmodel.CafeViewModelFactory
+import com.yaycate.cafecampus.viewmodel.MenuViewModel
 import com.yaycate.cafecampus.viewmodel.SesionViewModel
 
 @Composable
@@ -31,7 +36,10 @@ fun NavCafe() {
     val repo: CafeRepository = remember { CafeRepositoryRoom(CafeDatabase.obtener(context)) }
     val prefs = remember { PreferenciasStore(context) }
     val factory = remember { CafeViewModelFactory(repo, prefs) }
+
+    // Una sola instancia para menú y detalle, así el carrito se comparte
     val sesionVm: SesionViewModel = viewModel(factory = factory)
+    val menuVm: MenuViewModel = viewModel(factory = factory)
 
     NavHost(navController = nav, startDestination = Ruta.Splash.ruta) {
 
@@ -57,8 +65,26 @@ fun NavCafe() {
             }
         }
 
-        // Provisionales: se reemplazan en los pasos del menú y del panel
-        composable(Ruta.Menu.ruta) { PantallaProvisional("Menú (pendiente)") }
+        composable(Ruta.Menu.ruta) {
+            MenuScreen(vm = menuVm) { id ->
+                nav.navigate("detalle/$id")
+            }
+        }
+
+        composable(
+            route = Ruta.Detalle.ruta,
+            arguments = listOf(navArgument("productoId") { type = NavType.IntType })
+        ) { entrada ->
+            val id = entrada.arguments?.getInt("productoId") ?: -1
+            DetalleProductoScreen(
+                vm = menuVm,
+                productoId = id,
+                onAgregado = { nav.popBackStack() },
+                onVolver = { nav.popBackStack() }
+            )
+        }
+
+        // Provisional: se reemplaza en el paso del panel de admin
         composable(Ruta.Panel.ruta) { PantallaProvisional("Panel (pendiente)") }
     }
 }
