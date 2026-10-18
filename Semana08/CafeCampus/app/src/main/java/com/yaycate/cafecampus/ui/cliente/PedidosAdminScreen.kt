@@ -1,35 +1,46 @@
 package com.yaycate.cafecampus.ui.cliente
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.data.local.relation.PedidoConDetalle
 import com.yaycate.cafecampus.model.EstadoPedido
 import com.yaycate.cafecampus.ui.components.AppTopBar
-import com.yaycate.cafecampus.ui.components.CafeButton
+import com.yaycate.cafecampus.ui.theme.EstadoListo
+import com.yaycate.cafecampus.ui.theme.EstadoPreparando
+import com.yaycate.cafecampus.ui.theme.EstadoRecibido
 import com.yaycate.cafecampus.viewmodel.PedidosAdminViewModel
 
 private val pestanasAdmin = listOf(
@@ -57,30 +68,39 @@ fun PedidosAdminScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(relleno)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TabRow(selectedTabIndex = indice) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 pestanasAdmin.forEachIndexed { i, e ->
-                    Tab(
+                    FilterChip(
                         selected = indice == i,
                         onClick = { vm.filtrar(e) },
-                        text = { Text(etiquetasPestana[i]) }
+                        label = { Text(etiquetasPestana[i]) },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
 
             if (pedidos.isEmpty()) {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "No hay pedidos en esta pestaña",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(pedidos, key = { it.pedido.id }) { item ->
@@ -108,29 +128,69 @@ private fun TarjetaPedidoAdmin(
     val actual = estadoDe(pedido.estado)
     val siguiente = siguienteEstado(actual)
     val puedeCancelar = actual != EstadoPedido.ENTREGADO && actual != EstadoPedido.CANCELADO
+    val resumen = item.detalles.joinToString(" + ") { "${it.cantidad} x ${it.nombreProducto}" }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = "Pedido #${pedido.id} · ${item.cliente.nombre}",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "#${pedido.id} ${item.cliente.nombre}",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = resumen,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                EstadoBadge(estado = actual)
+            }
+
             Text(
                 text = "Recojo: ${pedido.horaRecojo} · S/ %.2f".format(pedido.total),
                 style = MaterialTheme.typography.bodyMedium
             )
+
             if (pedido.nota.isNotBlank()) {
                 Text(
                     text = "Nota: ${pedido.nota}",
@@ -139,23 +199,60 @@ private fun TarjetaPedidoAdmin(
                 )
             }
 
-            if (siguiente != null) {
-                CafeButton(
-                    texto = "Pasar a ${etiqueta(siguiente)}",
-                    onClick = { onPasarSiguiente(siguiente) }
-                )
-            }
-
-            if (puedeCancelar) {
-                OutlinedButton(
-                    onClick = onCancelar,
-                    modifier = Modifier.fillMaxWidth()
+            if (siguiente != null || puedeCancelar) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Cancelar pedido")
+                    if (siguiente != null) {
+                        Button(
+                            onClick = { onPasarSiguiente(siguiente) },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Pasar a ${etiqueta(siguiente)}")
+                        }
+                    }
+                    if (puedeCancelar) {
+                        Button(
+                            onClick = onCancelar,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun EstadoBadge(estado: EstadoPedido) {
+    val color = colorDeEstado(estado)
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = color.copy(alpha = 0.15f)
+    ) {
+        Text(
+            text = etiqueta(estado),
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+        )
+    }
+}
+
+private fun colorDeEstado(e: EstadoPedido): Color = when (e) {
+    EstadoPedido.RECIBIDO -> EstadoRecibido
+    EstadoPedido.PREPARANDO -> EstadoPreparando
+    EstadoPedido.LISTO -> EstadoListo
+    EstadoPedido.ENTREGADO -> Color(0xFF6B7280)
+    EstadoPedido.CANCELADO -> Color(0xFFDC2626)
 }
 
 private fun estadoDe(texto: String): EstadoPedido =

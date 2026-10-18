@@ -144,6 +144,12 @@ private fun DetalleContenido(
         }
 
         Text(
+            text = "Tiempo estimado: 10 – 15 min",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Text(
             text = producto.descripcion,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant

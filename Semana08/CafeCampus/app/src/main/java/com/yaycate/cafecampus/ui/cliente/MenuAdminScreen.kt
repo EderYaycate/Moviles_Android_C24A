@@ -1,5 +1,6 @@
 package com.yaycate.cafecampus.ui.cliente
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +46,7 @@ import com.yaycate.cafecampus.data.local.entity.Producto
 import com.yaycate.cafecampus.ui.components.AppTopBar
 import com.yaycate.cafecampus.ui.components.ProductoIcono
 import com.yaycate.cafecampus.viewmodel.MenuAdminViewModel
+import androidx.compose.foundation.rememberScrollState as rememberScrollStateAlias
 
 private const val TODO_CATEGORIAS = "Todo"
 
@@ -120,12 +122,12 @@ fun MenuAdminScreen(
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(mostrados, key = { it.id }) { producto ->
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surface
                             )
@@ -136,21 +138,34 @@ fun MenuAdminScreen(
                                     .padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                ProductoIcono(
-                                    icono = producto.icono,
+                                Box(
                                     modifier = Modifier
-                                        .size(32.dp)
-                                        .padding(end = 4.dp)
-                                )
+                                        .size(56.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.primaryContainer,
+                                            shape = RoundedCornerShape(12.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    ProductoIcono(
+                                        icono = producto.icono,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
 
-                                Column(modifier = Modifier.weight(1f)) {
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 12.dp)
+                                ) {
                                     Text(
                                         text = producto.nombre,
                                         style = MaterialTheme.typography.titleSmall
                                     )
                                     Text(
-                                        text = "S/ %.2f".format(producto.precio) + " · " + producto.categoria,
-                                        style = MaterialTheme.typography.bodySmall
+                                        text = "${producto.categoria} · S/ %.2f".format(producto.precio),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Surface(
                                         shape = RoundedCornerShape(50),

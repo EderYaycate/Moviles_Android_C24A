@@ -1,12 +1,18 @@
 package com.yaycate.cafecampus.ui.cliente
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -27,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.ui.components.AppTopBar
 import com.yaycate.cafecampus.ui.components.CafeButton
 import com.yaycate.cafecampus.ui.components.CafeTextField
+import com.yaycate.cafecampus.ui.components.ProductoIcono
 import com.yaycate.cafecampus.viewmodel.MenuViewModel
 import kotlinx.coroutines.launch
 
@@ -43,6 +50,7 @@ fun ConfirmarPedidoScreen(
 ) {
     val carrito by vm.carrito.collectAsState()
     val total by vm.totalCarrito.collectAsState()
+    val productos by vm.productos.collectAsState()
     val scope = rememberCoroutineScope()
 
     var horaRecojo by rememberSaveable { mutableStateOf("") }
@@ -80,45 +88,78 @@ fun ConfirmarPedidoScreen(
                     Text("Ir al menú")
                 }
             } else {
-                carrito.forEach { item ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = item.nombre,
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                            Text(
-                                text = "S/ %.2f".format(item.precio * item.cantidad),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            if (item.nota.isNotBlank()) {
-                                Text(
-                                    text = "Nota: ${item.nota}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                        carrito.forEach { item ->
+                            val icono = productos.find { it.id == item.productoId }?.icono ?: "plato"
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.primaryContainer,
+                                            shape = RoundedCornerShape(12.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    ProductoIcono(
+                                        icono = icono,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = item.nombre,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "S/ %.2f".format(item.precio * item.cantidad),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    if (item.nota.isNotBlank()) {
+                                        Text(
+                                            text = "Nota: ${item.nota}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    OutlinedButton(
+                                        onClick = { vm.cambiarCantidad(item.productoId, item.cantidad - 1) }
+                                    ) { Text("−") }
+                                    Text(
+                                        text = item.cantidad.toString(),
+                                        modifier = Modifier.padding(horizontal = 10.dp)
+                                    )
+                                    OutlinedButton(
+                                        onClick = { vm.cambiarCantidad(item.productoId, item.cantidad + 1) }
+                                    ) { Text("+") }
+                                }
+                            }
+
+                            TextButton(onClick = { vm.quitar(item.productoId) }) {
+                                Text("Quitar")
                             }
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            OutlinedButton(
-                                onClick = { vm.cambiarCantidad(item.productoId, item.cantidad - 1) }
-                            ) { Text("−") }
-                            Text(
-                                text = item.cantidad.toString(),
-                                modifier = Modifier.padding(horizontal = 12.dp)
-                            )
-                            OutlinedButton(
-                                onClick = { vm.cambiarCantidad(item.productoId, item.cantidad + 1) }
-                            ) { Text("+") }
-                        }
-                    }
-                    TextButton(onClick = { vm.quitar(item.productoId) }) {
-                        Text("Quitar")
                     }
                 }
 

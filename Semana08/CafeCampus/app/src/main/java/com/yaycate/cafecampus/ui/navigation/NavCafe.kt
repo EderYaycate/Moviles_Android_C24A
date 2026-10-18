@@ -57,6 +57,7 @@ fun NavCafe() {
 
     val clienteId by prefs.clienteId.collectAsState(initial = -1)
     val perfil by prefs.perfilActivo.collectAsState(initial = "")
+    val recibirPedidos by prefs.recibirPedidos.collectAsState(initial = true)
 
     // Barra inferior: opciones según el perfil activo
     val esAdmin = perfil == Rol.ADMIN.name
@@ -150,6 +151,7 @@ fun NavCafe() {
                 ConfirmarPedidoScreen(
                     vm = menuVm,
                     clienteId = clienteId,
+                    recibirPedidos = recibirPedidos,
                     onConfirmado = { nav.popBackStack(Ruta.Menu.ruta, inclusive = false) },
                     onVolver = { nav.popBackStack() }
                 )
@@ -238,6 +240,7 @@ fun NavCafe() {
             composable(Ruta.Ajustes.ruta) {
                 AjustesScreen(
                     prefs = prefs,
+                    onCambiarPerfil = cerrarSesion,
                     onCerrarSesion = cerrarSesion,
                     onVolver = { nav.popBackStack() }
                 )
