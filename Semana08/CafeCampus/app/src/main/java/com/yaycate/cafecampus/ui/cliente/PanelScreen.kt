@@ -6,60 +6,49 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.ui.components.AppTopBar
 import com.yaycate.cafecampus.ui.components.CafeButton
+import com.yaycate.cafecampus.ui.theme.EstadoListo
+import com.yaycate.cafecampus.ui.theme.EstadoPreparando
+import com.yaycate.cafecampus.ui.theme.EstadoRecibido
 import com.yaycate.cafecampus.viewmodel.PanelViewModel
 
 @Composable
 fun PanelScreen(
     vm: PanelViewModel,
     onVerPedidos: () -> Unit,
-    onGestionarMenu: () -> Unit,
-    onAjustes: () -> Unit,
-    onCerrarSesion: () -> Unit
+    onGestionarMenu: () -> Unit
 ) {
     val ventas by vm.ventasHoy.collectAsState()
     val recibidos by vm.recibidos.collectAsState()
     val preparando by vm.preparando.collectAsState()
     val listos by vm.listos.collectAsState()
+    val nuevos by vm.nuevos.collectAsState()
 
     Scaffold(
-        topBar = {
-            AppTopBar(
-                titulo = "Panel",
-                acciones = {
-                    IconButton(onClick = onAjustes) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Ajustes"
-                        )
-                    }
-                    TextButton(onClick = onCerrarSesion) { Text("Salir") }
-                }
-            )
-        }
+        topBar = { AppTopBar(titulo = "Panel") }
     ) { relleno ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(relleno)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             TarjetaResumen(
@@ -75,18 +64,63 @@ fun PanelScreen(
                 TarjetaResumen(
                     titulo = "Recibidos",
                     valor = recibidos.toString(),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colorValor = EstadoRecibido
                 )
                 TarjetaResumen(
                     titulo = "Preparando",
                     valor = preparando.toString(),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colorValor = EstadoPreparando
                 )
                 TarjetaResumen(
                     titulo = "Listos",
                     valor = listos.toString(),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colorValor = EstadoListo
                 )
+            }
+
+            Text(
+                text = "Nuevos pedidos",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            if (nuevos.isEmpty()) {
+                Text(
+                    text = "No hay pedidos nuevos",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            nuevos.take(5).forEach { item ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Pedido #${item.pedido.id} · ${item.cliente.nombre}",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Recojo: ${item.pedido.horaRecojo} · S/ %.2f".format(item.pedido.total),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        CafeButton(
+                            texto = "Preparar",
+                            onClick = { vm.preparar(item.pedido.id) }
+                        )
+                    }
+                }
             }
 
             CafeButton(
@@ -106,7 +140,8 @@ fun PanelScreen(
 private fun TarjetaResumen(
     titulo: String,
     valor: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    colorValor: Color = MaterialTheme.colorScheme.primary
 ) {
     Card(
         modifier = modifier,
@@ -122,7 +157,7 @@ private fun TarjetaResumen(
             Text(
                 text = valor,
                 style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary
+                color = colorValor
             )
         }
     }

@@ -8,8 +8,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -19,7 +17,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,10 +32,7 @@ import com.yaycate.cafecampus.viewmodel.MenuViewModel
 fun MenuScreen(
     vm: MenuViewModel,
     onProductoClick: (Int) -> Unit,
-    onVerCarrito: () -> Unit,
-    onVerPedidos: () -> Unit,
-    onAjustes: () -> Unit,
-    onCerrarSesion: () -> Unit
+    onVerCarrito: () -> Unit
 ) {
     val productos by vm.productos.collectAsState()
     val carrito by vm.carrito.collectAsState()
@@ -49,19 +43,6 @@ fun MenuScreen(
             AppTopBar(
                 titulo = "Menú",
                 acciones = {
-                    TextButton(onClick = onCerrarSesion) { Text("Salir") }
-                    IconButton(onClick = onAjustes) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Ajustes"
-                        )
-                    }
-                    IconButton(onClick = onVerPedidos) {
-                        Icon(
-                            imageVector = Icons.Default.List,
-                            contentDescription = "Mis pedidos"
-                        )
-                    }
                     IconButton(onClick = onVerCarrito) {
                         BadgedBox(
                             badge = {

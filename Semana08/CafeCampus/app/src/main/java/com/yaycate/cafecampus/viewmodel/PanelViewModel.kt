@@ -2,14 +2,16 @@ package com.yaycate.cafecampus.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yaycate.cafecampus.data.local.relation.PedidoConDetalle
 import com.yaycate.cafecampus.data.repository.CafeRepository
 import com.yaycate.cafecampus.model.EstadoPedido
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
-class PanelViewModel(repo: CafeRepository) : ViewModel() {
+class PanelViewModel(private val repo: CafeRepository) : ViewModel() {
 
     // Ventas desde las 00:00 de hoy; excluye pedidos cancelados
     val ventasHoy: StateFlow<Double> = repo.observarVentasHoy(inicioDelDia())
@@ -24,6 +26,16 @@ class PanelViewModel(repo: CafeRepository) : ViewModel() {
 
     val listos: StateFlow<Int> = repo.observarCantidadPorEstado(EstadoPedido.LISTO)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
+    // Pedidos recién llegados, listos para pasar a Preparando
+    val nuevos: StateFlow<List<PedidoConDetalle>> = repo.observarPedidosPorEstado(EstadoPedido.RECIBIDO)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun preparar(pedidoId: Int) {
+        viewModelScope.launch {
+            repo.cambiarEstado(pedidoId, EstadoPedido.PREPARANDO)
+        }
+    }
 
     private fun inicioDelDia(): Long {
         return Calendar.getInstance().apply {
