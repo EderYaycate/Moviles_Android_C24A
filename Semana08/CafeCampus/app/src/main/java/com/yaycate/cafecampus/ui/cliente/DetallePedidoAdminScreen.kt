@@ -1,5 +1,6 @@
 package com.yaycate.cafecampus.ui.cliente
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -25,6 +27,13 @@ import com.yaycate.cafecampus.ui.components.AppTopBar
 import com.yaycate.cafecampus.ui.components.CafeButton
 import com.yaycate.cafecampus.ui.components.StepperEstado
 import com.yaycate.cafecampus.viewmodel.PedidosAdminViewModel
+
+private val estadosCambio = listOf(
+    EstadoPedido.RECIBIDO,
+    EstadoPedido.PREPARANDO,
+    EstadoPedido.LISTO,
+    EstadoPedido.ENTREGADO
+)
 
 @Composable
 fun DetallePedidoAdminScreen(
@@ -49,7 +58,7 @@ fun DetallePedidoAdminScreen(
                 Text("Cargando pedido...", style = MaterialTheme.typography.bodyLarge)
             }
         } else {
-            val estado = EstadoPedido.valueOf(actual.pedido.estado)
+            val estado = estadoDe(actual.pedido.estado)
             val siguiente = estadoSiguiente(estado)
             val puedeCancelar = estado != EstadoPedido.ENTREGADO && estado != EstadoPedido.CANCELADO
 
@@ -101,9 +110,27 @@ fun DetallePedidoAdminScreen(
 
                 if (actual.pedido.nota.isNotBlank()) {
                     Text(
-                        text = "Nota: ${actual.pedido.nota}",
-                        style = MaterialTheme.typography.bodySmall
+                        text = "Nota del cliente: ${actual.pedido.nota}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+
+                Text(
+                    text = "Cambiar estado",
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    estadosCambio.forEach { e ->
+                        FilterChip(
+                            selected = estado == e,
+                            onClick = { if (estado != e) vm.cambiarEstado(pedidoId, e) },
+                            label = { Text(nombreEstado(e)) }
+                        )
+                    }
                 }
 
                 if (siguiente != null) {
@@ -115,7 +142,8 @@ fun DetallePedidoAdminScreen(
 
                 if (puedeCancelar) {
                     OutlinedButton(
-                        onClick = { vm.cambiarEstado(pedidoId, EstadoPedido.CANCELADO) }
+                        onClick = { vm.cambiarEstado(pedidoId, EstadoPedido.CANCELADO) },
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Cancelar pedido", color = MaterialTheme.colorScheme.error)
                     }
@@ -124,6 +152,9 @@ fun DetallePedidoAdminScreen(
         }
     }
 }
+
+private fun estadoDe(texto: String): EstadoPedido =
+    runCatching { EstadoPedido.valueOf(texto) }.getOrDefault(EstadoPedido.RECIBIDO)
 
 private fun estadoSiguiente(estado: EstadoPedido): EstadoPedido? = when (estado) {
     EstadoPedido.RECIBIDO -> EstadoPedido.PREPARANDO
