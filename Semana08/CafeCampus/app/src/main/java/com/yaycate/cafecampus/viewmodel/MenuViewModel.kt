@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-class MenuViewModel(repo: CafeRepository) : ViewModel() {
+class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
 
     // Lista de productos que se actualiza sola cuando cambia la base de datos
     val productos: StateFlow<List<Producto>> = repo.observarProductos()
@@ -74,5 +74,17 @@ class MenuViewModel(repo: CafeRepository) : ViewModel() {
 
     fun vaciarCarrito() {
         _carrito.value = emptyList()
+    }
+
+    // Guarda el pedido con lo que hay en el carrito, vacía el carrito y devuelve el id del pedido
+    suspend fun confirmarPedido(
+        clienteId: Int,
+        horaRecojo: String,
+        pago: String,
+        nota: String
+    ): Long {
+        val id = repo.crearPedido(clienteId, _carrito.value, horaRecojo, pago, nota)
+        _carrito.value = emptyList()
+        return id
     }
 }

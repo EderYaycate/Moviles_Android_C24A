@@ -3,6 +3,7 @@ package com.yaycate.cafecampus.data.prefs
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.yaycate.cafecampus.model.Rol
@@ -15,12 +16,17 @@ private val Context.dataStore by preferencesDataStore("ajustes")
 class PreferenciasStore(private val context: Context) {
 
     private val perfilKey = stringPreferencesKey("perfilActivo")
+    private val clienteIdKey = intPreferencesKey("clienteId")
     private val modoOscuroKey = booleanPreferencesKey("modoOscuro")
     private val recibirKey = booleanPreferencesKey("recibirPedidos")
 
     // Lectura (Flow, una por preferencia)
     val perfilActivo: Flow<String> =
         context.dataStore.data.map { it[perfilKey] ?: "" }
+
+    // -1 significa que no hay sesión guardada
+    val clienteId: Flow<Int> =
+        context.dataStore.data.map { it[clienteIdKey] ?: -1 }
 
     val modoOscuro: Flow<Boolean> =
         context.dataStore.data.map { it[modoOscuroKey] ?: false }
@@ -33,6 +39,10 @@ class PreferenciasStore(private val context: Context) {
         context.dataStore.edit { it[perfilKey] = rol.name }
     }
 
+    suspend fun guardarClienteId(id: Int) {
+        context.dataStore.edit { it[clienteIdKey] = id }
+    }
+
     suspend fun guardarModoOscuro(b: Boolean) {
         context.dataStore.edit { it[modoOscuroKey] = b }
     }
@@ -42,6 +52,9 @@ class PreferenciasStore(private val context: Context) {
     }
 
     suspend fun cerrarSesion() {
-        context.dataStore.edit { it[perfilKey] = "" }
+        context.dataStore.edit {
+            it[perfilKey] = ""
+            it[clienteIdKey] = -1
+        }
     }
 }

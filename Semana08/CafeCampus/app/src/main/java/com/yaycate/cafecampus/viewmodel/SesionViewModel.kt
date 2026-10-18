@@ -41,6 +41,7 @@ class SesionViewModel(
                     _error.value = "Esta cuenta no corresponde al perfil elegido"
                 else -> {
                     prefs.guardarPerfil(rolSeleccionado)
+                    prefs.guardarClienteId(usuario.id)
                     _error.value = null
                     _usuarioActual.value = usuario
                 }
