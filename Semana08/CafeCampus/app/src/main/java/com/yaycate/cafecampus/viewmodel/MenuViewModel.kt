@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -21,6 +22,26 @@ class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList()
         )
+
+    private val _busqueda = MutableStateFlow("")
+    val busqueda: StateFlow<String> = _busqueda.asStateFlow()
+
+    fun cambiarBusqueda(texto: String) {
+        _busqueda.value = texto
+    }
+
+    val productosFiltrados: StateFlow<List<Producto>> = combine(productos, _busqueda) { lista, query ->
+        val queryLimpia = query.trim()
+        if (queryLimpia.isBlank()) {
+            lista
+        } else {
+            lista.filter { it.nombre.contains(queryLimpia, ignoreCase = true) }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
 
     // Carrito en memoria: vive mientras la app esté abierta
     private val _carrito = MutableStateFlow<List<ItemCarrito>>(emptyList())

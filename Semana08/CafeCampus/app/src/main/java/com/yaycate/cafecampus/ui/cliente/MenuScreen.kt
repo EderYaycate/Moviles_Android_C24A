@@ -54,17 +54,17 @@ fun MenuScreen(
     onVerCarrito: () -> Unit
 ) {
     val productos by vm.productos.collectAsState()
+    val productosFiltrados by vm.productosFiltrados.collectAsState()
+    val busqueda by vm.busqueda.collectAsState()
     val carrito by vm.carrito.collectAsState()
     val cantidadTotal = carrito.sumOf { it.cantidad }
 
-    var busqueda by rememberSaveable { mutableStateOf("") }
     var categoriaElegida by rememberSaveable { mutableStateOf(TODAS) }
 
     val categorias = listOf(TODAS) + productos.map { it.categoria }.distinct().sorted()
     val seleccion = if (categoriaElegida in categorias) categoriaElegida else TODAS
-    val mostrados = productos.filter { p ->
-        (seleccion == TODAS || p.categoria == seleccion) &&
-                (busqueda.isBlank() || p.nombre.contains(busqueda.trim(), ignoreCase = true))
+    val mostrados = productosFiltrados.filter { p ->
+        seleccion == TODAS || p.categoria == seleccion
     }
 
     Scaffold { relleno ->
@@ -111,7 +111,7 @@ fun MenuScreen(
 
             OutlinedTextField(
                 value = busqueda,
-                onValueChange = { busqueda = it },
+                onValueChange = { vm.cambiarBusqueda(it) },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Buscar en el menú...") },
                 leadingIcon = {
