@@ -160,8 +160,10 @@ fun NavCafe() {
             composable(Ruta.Pedidos.ruta) {
                 PedidosScreen(
                     vm = pedidosVm,
+                    menuVm = menuVm,
                     clienteId = clienteId,
                     onPedidoClick = { id -> nav.navigate("seguimiento/$id") },
+                    onIrAlCarrito = { nav.navigate(Ruta.Confirmar.ruta) },
                     onVolver = { nav.popBackStack() }
                 )
             }

@@ -3,6 +3,7 @@ package com.yaycate.cafecampus.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yaycate.cafecampus.data.local.entity.Producto
+import com.yaycate.cafecampus.data.local.relation.PedidoConDetalle
 import com.yaycate.cafecampus.data.repository.CafeRepository
 import com.yaycate.cafecampus.model.ItemCarrito
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,8 +11,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
 
@@ -78,6 +81,32 @@ class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
             )
         }
         _carrito.value = actual
+    }
+
+    // Repite un pedido anterior agregando al carrito solo los productos disponibles con precio actual
+    fun repetirPedido(
+        pedido: PedidoConDetalle,
+        onResultado: (noDisponibles: List<String>) -> Unit
+    ) {
+        viewModelScope.launch {
+            val listaProductos = repo.observarProductos().first()
+            val noDisponibles = mutableListOf<String>()
+
+            pedido.detalles.forEach { detalle ->
+                val prodActual = listaProductos.find { it.id == detalle.productoId }
+                if (prodActual != null && prodActual.disponible) {
+                    agregar(
+                        producto = prodActual,
+                        cantidad = detalle.cantidad,
+                        nota = pedido.pedido.nota
+                    )
+                } else {
+                    noDisponibles.add(detalle.nombreProducto)
+                }
+            }
+
+            onResultado(noDisponibles)
+        }
     }
 
     // Cambia la cantidad; con 0 o menos quita el producto

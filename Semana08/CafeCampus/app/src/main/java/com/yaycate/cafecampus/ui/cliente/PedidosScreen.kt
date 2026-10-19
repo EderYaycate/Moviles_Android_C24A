@@ -8,16 +8,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -26,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.model.EstadoPedido
 import com.yaycate.cafecampus.ui.components.AppTopBar
 import com.yaycate.cafecampus.ui.components.PedidoCard
+import com.yaycate.cafecampus.viewmodel.MenuViewModel
 import com.yaycate.cafecampus.viewmodel.PedidosClienteViewModel
 
 private val estadosActivos = setOf(
@@ -37,12 +42,15 @@ private val estadosActivos = setOf(
 @Composable
 fun PedidosScreen(
     vm: PedidosClienteViewModel,
+    menuVm: MenuViewModel,
     clienteId: Int,
     onPedidoClick: (Int) -> Unit,
+    onIrAlCarrito: () -> Unit,
     onVolver: () -> Unit
 ) {
     val pedidos by vm.pedidos.collectAsState()
     var pestana by rememberSaveable { mutableIntStateOf(0) }
+    var productosAgotados by remember { mutableStateOf<List<String>?>(null) }
 
     LaunchedEffect(clienteId) {
         if (clienteId > 0) vm.cargar(clienteId)
@@ -96,12 +104,52 @@ fun PedidosScreen(
                     items(mostrados, key = { it.pedido.id }) { item ->
                         PedidoCard(
                             pedido = item.pedido,
-                            onClick = { onPedidoClick(item.pedido.id) }
+                            onClick = { onPedidoClick(item.pedido.id) },
+                            onRepetirPedido = if (pestana == 1) {
+                                {
+                                    menuVm.repetirPedido(item) { noDisponibles ->
+                                        if (noDisponibles.isEmpty()) {
+                                            onIrAlCarrito()
+                                        } else {
+                                            productosAgotados = noDisponibles
+                                        }
+                                    }
+                                }
+                            } else null
                         )
                     }
                 }
             }
         }
+    }
+
+    val agotados = productosAgotados
+    if (agotados != null) {
+        AlertDialog(
+            onDismissRequest = { productosAgotados = null },
+            title = { Text("Productos no disponibles") },
+            text = {
+                Text(
+                    "Los siguientes productos ya no están disponibles y no se agregaron al carrito:\n\n" +
+                            agotados.joinToString("\n") { "• $it" }
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        productosAgotados = null
+                        onIrAlCarrito()
+                    }
+                ) {
+                    Text("Ir al carrito")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { productosAgotados = null }) {
+                    Text("Cerrar")
+                }
+            }
+        )
     }
 }
 
