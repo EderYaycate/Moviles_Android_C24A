@@ -1,6 +1,7 @@
 package com.yaycate.cafecampus.ui.cliente
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -264,8 +265,9 @@ private fun GraficoPorHora(datos: List<VentaHora>) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(160.dp)
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+                .padding(12.dp)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Bottom
         ) {
             datos.forEach { venta ->

@@ -51,16 +51,20 @@ class PanelViewModel(private val repo: CafeRepository) : ViewModel() {
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
-    // Pedidos agrupados por hora, de 8h a 13h
+    // Pedidos agrupados por hora, desde la primera hasta la última hora con pedidos (mínimo 8h a 13h)
     val pedidosPorHora: StateFlow<List<VentaHora>> = pedidosHoy
         .map { lista ->
+            val horasConPedidos = lista.map { horaDe(it.pedido.fecha) }
+            val minHora = (horasConPedidos.minOrNull() ?: 8).coerceAtMost(8)
+            val maxHora = (horasConPedidos.maxOrNull() ?: 13).coerceAtLeast(13)
             val conteo = lista.groupingBy { horaDe(it.pedido.fecha) }.eachCount()
-            HORAS.map { h -> VentaHora(h, conteo[h] ?: 0) }
+
+            (minHora..maxHora).map { h -> VentaHora(h, conteo[h] ?: 0) }
         }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5_000),
-            HORAS.map { VentaHora(it, 0) }
+            (8..13).map { VentaHora(it, 0) }
         )
 
     fun preparar(pedidoId: Int) {
@@ -79,9 +83,5 @@ class PanelViewModel(private val repo: CafeRepository) : ViewModel() {
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
-    }
-
-    companion object {
-        private val HORAS = (8..13).toList()
     }
 }
