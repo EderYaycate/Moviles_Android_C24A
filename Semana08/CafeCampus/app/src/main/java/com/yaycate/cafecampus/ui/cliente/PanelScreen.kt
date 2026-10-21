@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,7 @@ import com.yaycate.cafecampus.ui.components.CafeButton
 import com.yaycate.cafecampus.ui.theme.EstadoListo
 import com.yaycate.cafecampus.ui.theme.EstadoPreparando
 import com.yaycate.cafecampus.ui.theme.EstadoRecibido
+import com.yaycate.cafecampus.viewmodel.CategoriaHora
 import com.yaycate.cafecampus.viewmodel.PanelViewModel
 import com.yaycate.cafecampus.viewmodel.VentaHora
 
@@ -122,34 +124,47 @@ fun PanelScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = Color.Transparent
                 )
             ) {
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "Ventas del día",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onPrimary
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(16.dp)
                         )
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Ventas del día",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                            Text(
+                                text = "S/ %.2f".format(ventas),
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                         Text(
-                            text = "S/ %.2f".format(ventas),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
+                            text = "$cantidadHoy pedidos",
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
-                    Text(
-                        text = "$cantidadHoy pedidos",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
                 }
             }
 
@@ -272,6 +287,13 @@ private fun GraficoPorHora(datos: List<VentaHora>) {
         ) {
             datos.forEach { venta ->
                 val alto = if (venta.cantidad == 0) 4 else maxOf(12, 90 * venta.cantidad / maximo)
+                val colorBarra = when (venta.categoria) {
+                    CategoriaHora.MAS_VENDIDA -> Color(0xFF10B981)  // Verde
+                    CategoriaHora.MENOS_VENDIDA -> Color(0xFFEF4444) // Rojo
+                    CategoriaHora.INTERMEDIA -> Color(0xFFF59E0B)    // Ámbar/Naranja (intermedio entre verde y rojo)
+                    CategoriaHora.SIN_VENTAS -> Color(0xFF9CA3AF)    // Gris
+                }
+
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = venta.cantidad.toString(),
@@ -282,7 +304,7 @@ private fun GraficoPorHora(datos: List<VentaHora>) {
                             .width(24.dp)
                             .height(alto.dp)
                             .background(
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                                color = colorBarra,
                                 shape = RoundedCornerShape(6.dp)
                             )
                     )

@@ -14,7 +14,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
-data class VentaHora(val hora: Int, val cantidad: Int)
+enum class CategoriaHora {
+    MAS_VENDIDA,
+    MENOS_VENDIDA,
+    INTERMEDIA,
+    SIN_VENTAS
+}
+
+data class VentaHora(
+    val hora: Int,
+    val cantidad: Int,
+    val categoria: CategoriaHora = CategoriaHora.SIN_VENTAS
+)
 
 class PanelViewModel(private val repo: CafeRepository) : ViewModel() {
 
@@ -59,12 +70,30 @@ class PanelViewModel(private val repo: CafeRepository) : ViewModel() {
             val maxHora = (horasConPedidos.maxOrNull() ?: 13).coerceAtLeast(13)
             val conteo = lista.groupingBy { horaDe(it.pedido.fecha) }.eachCount()
 
-            (minHora..maxHora).map { h -> VentaHora(h, conteo[h] ?: 0) }
+            val horasConVentas = (minHora..maxHora).mapNotNull { h ->
+                val cant = conteo[h] ?: 0
+                if (cant > 0) cant else null
+            }
+
+            val maxVentas = horasConVentas.maxOrNull() ?: 0
+            val minVentas = horasConVentas.minOrNull() ?: 0
+
+            (minHora..maxHora).map { h ->
+                val cant = conteo[h] ?: 0
+                val cat = when {
+                    cant == 0 -> CategoriaHora.SIN_VENTAS
+                    maxVentas == minVentas -> CategoriaHora.MAS_VENDIDA
+                    cant == maxVentas -> CategoriaHora.MAS_VENDIDA
+                    cant == minVentas -> CategoriaHora.MENOS_VENDIDA
+                    else -> CategoriaHora.INTERMEDIA
+                }
+                VentaHora(hora = h, cantidad = cant, categoria = cat)
+            }
         }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5_000),
-            (8..13).map { VentaHora(it, 0) }
+            (8..13).map { VentaHora(it, 0, CategoriaHora.SIN_VENTAS) }
         )
 
     fun preparar(pedidoId: Int) {
