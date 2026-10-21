@@ -9,18 +9,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,11 +25,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.data.prefs.PreferenciasStore
 import com.yaycate.cafecampus.model.Rol
 import com.yaycate.cafecampus.ui.components.AppTopBar
+import com.yaycate.cafecampus.ui.components.ImagenCircular
+import com.yaycate.cafecampus.ui.components.recursoImagen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -43,6 +44,7 @@ fun AjustesScreen(
     onCerrarSesion: () -> Unit,
     onVolver: () -> Unit
 ) {
+    val context = LocalContext.current
     val perfil by prefs.perfilActivo.collectAsState(initial = "")
     val modoOscuro by prefs.modoOscuro.collectAsState(initial = false)
     val notificaciones by prefs.notificaciones.collectAsState(initial = true)
@@ -50,7 +52,9 @@ fun AjustesScreen(
     val scope = rememberCoroutineScope()
 
     val esAdmin = perfil == Rol.ADMIN.name
-    val nombrePerfil = if (esAdmin) "Administrador" else "Estudiante"
+    val nombrePerfil = if (esAdmin) "Administrador" else "Eder Yaycate"
+    val fotoNombre = if (esAdmin) "foto_admin" else "foto_eder"
+    val recursoFoto = recursoImagen(context, fotoNombre)
 
     Scaffold(
         topBar = { AppTopBar(titulo = "Ajustes", onVolver = onVolver) }
@@ -66,43 +70,37 @@ fun AjustesScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = Color.Transparent
                 )
             ) {
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .padding(16.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary
+                        ImagenCircular(
+                            recurso = recursoFoto,
+                            fallback = Icons.Default.Person,
+                            tamaño = 52.dp
                         )
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = nombrePerfil,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Surface(
-                            shape = RoundedCornerShape(50),
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        ) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Perfil activo",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                text = nombrePerfil,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
@@ -115,21 +113,36 @@ fun AjustesScreen(
                     .clickable(onClick = onCambiarPerfil),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = Color.Transparent
                 )
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Cambiar de perfil",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                    Text(
-                        text = "Vuelve al inicio de sesión para entrar con otro rol",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "Cambiar de perfil",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Text(
+                            text = "Vuelve al inicio de sesión para entrar con otro rol",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                 }
             }
 
@@ -156,14 +169,16 @@ fun AjustesScreen(
                 }
             )
 
-            FilaAjuste(
-                titulo = "Recibir pedidos",
-                subtitulo = "Si está apagado, los clientes ven 'Cafetería cerrada'",
-                checked = recibirPedidos,
-                onCambio = { valor ->
-                    scope.launch { prefs.guardarRecibirPedidos(valor) }
-                }
-            )
+            if (esAdmin) {
+                FilaAjuste(
+                    titulo = "Recibir pedidos",
+                    subtitulo = "Si está apagado, los clientes ven 'Cafetería cerrada'",
+                    checked = recibirPedidos,
+                    onCambio = { valor ->
+                        scope.launch { prefs.guardarRecibirPedidos(valor) }
+                    }
+                )
+            }
 
             Text(
                 text = "Se guardan en el dispositivo con DataStore",

@@ -104,6 +104,7 @@ fun PedidosScreen(
                     items(mostrados, key = { it.pedido.id }) { item ->
                         PedidoCard(
                             pedido = item.pedido,
+                            detalles = item.detalles,
                             onClick = { onPedidoClick(item.pedido.id) },
                             onRepetirPedido = if (pestana == 1) {
                                 {

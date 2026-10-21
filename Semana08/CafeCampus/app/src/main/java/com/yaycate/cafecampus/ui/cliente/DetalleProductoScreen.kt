@@ -1,5 +1,6 @@
 package com.yaycate.cafecampus.ui.cliente
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.data.local.entity.Producto
@@ -36,6 +40,8 @@ import com.yaycate.cafecampus.ui.components.AppTopBar
 import com.yaycate.cafecampus.ui.components.CafeButton
 import com.yaycate.cafecampus.ui.components.CafeTextField
 import com.yaycate.cafecampus.ui.components.ProductoIcono
+import com.yaycate.cafecampus.ui.components.recursoImagen
+import com.yaycate.cafecampus.ui.components.slugProducto
 import com.yaycate.cafecampus.viewmodel.MenuViewModel
 
 @Composable
@@ -79,9 +85,13 @@ private fun DetalleContenido(
     relleno: PaddingValues,
     onAgregar: (Int, String) -> Unit
 ) {
+    val context = LocalContext.current
     var cantidad by rememberSaveable { mutableIntStateOf(1) }
     var nota by rememberSaveable { mutableStateOf("") }
     val total = producto.precio * cantidad
+
+    val slug = slugProducto(producto.nombre)
+    val recursoFoto = recursoImagen(context, "producto_$slug")
 
     Column(
         modifier = Modifier
@@ -99,10 +109,19 @@ private fun DetalleContenido(
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
-            ProductoIcono(
-                icono = producto.icono,
-                modifier = Modifier.size(96.dp)
-            )
+            if (recursoFoto != 0) {
+                Image(
+                    painter = painterResource(id = recursoFoto),
+                    contentDescription = producto.nombre,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                ProductoIcono(
+                    icono = producto.icono,
+                    modifier = Modifier.size(96.dp)
+                )
+            }
         }
 
         Row(
