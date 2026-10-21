@@ -110,7 +110,7 @@ fun NavCafe() {
                         Rol.CLIENTE -> Ruta.Menu.ruta
                     }
                     nav.navigate(destino) {
-                        popUpTo(Ruta.Splash.ruta) { inclusive = true }
+                        popUpTo(nav.graph.id) { inclusive = true }
                     }
                 }
             }
@@ -119,7 +119,7 @@ fun NavCafe() {
                 LoginScreen(vm = sesionVm) { rol ->
                     val destino = if (rol == Rol.ADMIN) Ruta.Panel.ruta else Ruta.Menu.ruta
                     nav.navigate(destino) {
-                        popUpTo(Ruta.Login.ruta) { inclusive = true }
+                        popUpTo(nav.graph.id) { inclusive = true }
                     }
                 }
             }
@@ -164,7 +164,12 @@ fun NavCafe() {
                     clienteId = clienteId,
                     onPedidoClick = { id -> nav.navigate("seguimiento/$id") },
                     onIrAlCarrito = { nav.navigate(Ruta.Confirmar.ruta) },
-                    onVolver = { nav.popBackStack() }
+                    onVolver = {
+                        nav.navigate(Ruta.Menu.ruta) {
+                            popUpTo(nav.graph.id) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 
@@ -176,7 +181,11 @@ fun NavCafe() {
                 SeguimientoPedidoScreen(
                     vm = pedidosVm,
                     pedidoId = id,
-                    onVolver = { nav.popBackStack() }
+                    onVolver = {
+                        nav.navigate(Ruta.Pedidos.ruta) {
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 
@@ -194,7 +203,12 @@ fun NavCafe() {
                 PedidosAdminScreen(
                     vm = pedidosAdminVm,
                     onPedidoClick = { id -> nav.navigate("detalle_pedido_admin/$id") },
-                    onVolver = { nav.popBackStack() }
+                    onVolver = {
+                        nav.navigate(Ruta.Panel.ruta) {
+                            popUpTo(nav.graph.id) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 
@@ -215,7 +229,12 @@ fun NavCafe() {
                     vm = menuAdminVm,
                     onEditar = { id -> nav.navigate("formulario_producto?productoId=$id") },
                     onNuevo = { nav.navigate("formulario_producto?productoId=-1") },
-                    onVolver = { nav.popBackStack() }
+                    onVolver = {
+                        nav.navigate(Ruta.Panel.ruta) {
+                            popUpTo(nav.graph.id) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 
@@ -244,7 +263,13 @@ fun NavCafe() {
                     prefs = prefs,
                     onCambiarPerfil = cerrarSesion,
                     onCerrarSesion = cerrarSesion,
-                    onVolver = { nav.popBackStack() }
+                    onVolver = {
+                        val inicioRol = if (esAdmin) Ruta.Panel.ruta else Ruta.Menu.ruta
+                        nav.navigate(inicioRol) {
+                            popUpTo(nav.graph.id) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
         }
