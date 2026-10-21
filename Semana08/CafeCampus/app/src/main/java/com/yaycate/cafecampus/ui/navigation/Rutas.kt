@@ -3,6 +3,7 @@ package com.yaycate.cafecampus.ui.navigation
 sealed class Ruta(val ruta: String) {
     object Splash : Ruta("splash")
     object Login : Ruta("login")
+    object Registro : Ruta("registro")
 
     // Cliente
     object Menu : Ruta("menu")

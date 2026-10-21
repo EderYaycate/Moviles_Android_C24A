@@ -1,19 +1,23 @@
 package com.yaycate.cafecampus.ui.cliente
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -21,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,13 +36,19 @@ import com.yaycate.cafecampus.ui.theme.CafeTheme
 import com.yaycate.cafecampus.viewmodel.SesionViewModel
 
 @Composable
-fun LoginScreen(vm: SesionViewModel, onIngreso: (Rol) -> Unit) {
+fun LoginScreen(
+    vm: SesionViewModel,
+    mensajeExito: String? = null,
+    onIrARegistro: () -> Unit = {},
+    onIngreso: (Rol) -> Unit
+) {
     val usuario by vm.usuarioActual.collectAsState()
     val error by vm.error.collectAsState()
 
     var rol by remember { mutableStateOf(Rol.CLIENTE) }
     var correo by remember { mutableStateOf("") }
     var clave by remember { mutableStateOf("") }
+    var mostrarDialogoRecuperar by remember { mutableStateOf(false) }
 
     // Cuando el login es correcto, avisa a la navegación con el rol del usuario
     LaunchedEffect(usuario) {
@@ -82,6 +93,16 @@ fun LoginScreen(vm: SesionViewModel, onIngreso: (Rol) -> Unit) {
 
             Spacer(Modifier.height(24.dp))
 
+            mensajeExito?.let { msg ->
+                Text(
+                    text = msg,
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             CafeTextField(
                 valor = correo,
                 onValorChange = { correo = it },
@@ -97,7 +118,21 @@ fun LoginScreen(vm: SesionViewModel, onIngreso: (Rol) -> Unit) {
                 esClave = true
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(4.dp))
+
+            TextButton(
+                onClick = { mostrarDialogoRecuperar = true },
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    text = "¿Olvidaste tu contraseña?",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
 
             error?.let {
                 Text(it, color = MaterialTheme.colorScheme.error)
@@ -109,6 +144,29 @@ fun LoginScreen(vm: SesionViewModel, onIngreso: (Rol) -> Unit) {
                 texto = "Ingresar",
                 onClick = { vm.login(correo, clave, rol) }
             )
+
+            if (rol == Rol.CLIENTE) {
+                Spacer(Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "¿No tienes cuenta? ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Regístrate",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable { onIrARegistro() }
+                    )
+                }
+            }
 
             if (rol == Rol.ADMIN) {
                 Spacer(Modifier.height(24.dp))
@@ -135,6 +193,19 @@ fun LoginScreen(vm: SesionViewModel, onIngreso: (Rol) -> Unit) {
                     }
                 }
             }
+        }
+
+        if (mostrarDialogoRecuperar) {
+            AlertDialog(
+                onDismissRequest = { mostrarDialogoRecuperar = false },
+                title = { Text("Recuperar contraseña") },
+                text = { Text("Contacta al administrador para restablecer tu contraseña") },
+                confirmButton = {
+                    TextButton(onClick = { mostrarDialogoRecuperar = false }) {
+                        Text("Entendido")
+                    }
+                }
+            )
         }
     }
 }

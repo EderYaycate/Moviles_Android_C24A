@@ -15,6 +15,8 @@ class CafeViewModelFactory(
         return when {
             modelClass.isAssignableFrom(SesionViewModel::class.java) ->
                 SesionViewModel(repo, prefs) as T
+            modelClass.isAssignableFrom(RegistroViewModel::class.java) ->
+                RegistroViewModel(repo) as T
             modelClass.isAssignableFrom(MenuViewModel::class.java) ->
                 MenuViewModel(repo, prefs) as T
             modelClass.isAssignableFrom(PedidosClienteViewModel::class.java) ->

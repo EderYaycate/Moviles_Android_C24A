@@ -9,7 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +38,7 @@ import com.yaycate.cafecampus.ui.cliente.MenuScreen
 import com.yaycate.cafecampus.ui.cliente.PanelScreen
 import com.yaycate.cafecampus.ui.cliente.PedidosAdminScreen
 import com.yaycate.cafecampus.ui.cliente.PedidosScreen
+import com.yaycate.cafecampus.ui.cliente.RegistroScreen
 import com.yaycate.cafecampus.ui.cliente.SeguimientoPedidoScreen
 import com.yaycate.cafecampus.ui.cliente.SplashScreen
 import com.yaycate.cafecampus.viewmodel.CafeViewModelFactory
@@ -44,6 +47,7 @@ import com.yaycate.cafecampus.viewmodel.MenuViewModel
 import com.yaycate.cafecampus.viewmodel.PanelViewModel
 import com.yaycate.cafecampus.viewmodel.PedidosAdminViewModel
 import com.yaycate.cafecampus.viewmodel.PedidosClienteViewModel
+import com.yaycate.cafecampus.viewmodel.RegistroViewModel
 import com.yaycate.cafecampus.viewmodel.SesionViewModel
 
 @Composable
@@ -115,13 +119,32 @@ fun NavCafe() {
                 }
             }
 
-            composable(Ruta.Login.ruta) {
-                LoginScreen(vm = sesionVm) { rol ->
-                    val destino = if (rol == Rol.ADMIN) Ruta.Panel.ruta else Ruta.Menu.ruta
-                    nav.navigate(destino) {
-                        popUpTo(nav.graph.id) { inclusive = true }
+            composable(Ruta.Login.ruta) { entrada ->
+                val mensajeExito = entrada.savedStateHandle.get<String>("mensajeExito")
+
+                LoginScreen(
+                    vm = sesionVm,
+                    mensajeExito = mensajeExito,
+                    onIrARegistro = { nav.navigate(Ruta.Registro.ruta) },
+                    onIngreso = { rol ->
+                        val destino = if (rol == Rol.ADMIN) Ruta.Panel.ruta else Ruta.Menu.ruta
+                        nav.navigate(destino) {
+                            popUpTo(nav.graph.id) { inclusive = true }
+                        }
                     }
-                }
+                )
+            }
+
+            composable(Ruta.Registro.ruta) {
+                val registroVm: RegistroViewModel = viewModel(factory = factory)
+                RegistroScreen(
+                    vm = registroVm,
+                    onCuentaCreada = {
+                        nav.previousBackStackEntry?.savedStateHandle?.set("mensajeExito", "Cuenta creada, ya puedes ingresar")
+                        nav.popBackStack()
+                    },
+                    onVolver = { nav.popBackStack() }
+                )
             }
 
             // ----- Cliente -----

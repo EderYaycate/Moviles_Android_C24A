@@ -8,6 +8,7 @@ import com.yaycate.cafecampus.data.local.entity.Usuario
 import com.yaycate.cafecampus.data.local.relation.PedidoConDetalle
 import com.yaycate.cafecampus.model.EstadoPedido
 import com.yaycate.cafecampus.model.ItemCarrito
+import com.yaycate.cafecampus.model.Rol
 import kotlinx.coroutines.flow.Flow
 
 class CafeRepositoryRoom(private val db: CafeDatabase) : CafeRepository {
@@ -15,6 +16,26 @@ class CafeRepositoryRoom(private val db: CafeDatabase) : CafeRepository {
     // Usuarios
     override suspend fun login(correo: String, clave: String): Usuario? =
         db.usuarioDao().login(correo, clave)
+
+    override suspend fun registrarCliente(
+        nombre: String,
+        correo: String,
+        clave: String
+    ): Result<Long> {
+        val correoLimpio = correo.trim().lowercase()
+        val existe = db.usuarioDao().buscarPorCorreo(correoLimpio)
+        if (existe != null) {
+            return Result.failure(IllegalArgumentException("Ese correo ya está registrado"))
+        }
+        val usuario = Usuario(
+            nombre = nombre.trim(),
+            correo = correoLimpio,
+            clave = clave.trim(),
+            rol = Rol.CLIENTE.name
+        )
+        val id = db.usuarioDao().insertar(usuario)
+        return Result.success(id)
+    }
 
     // Productos
     override fun observarProductos(): Flow<List<Producto>> =
