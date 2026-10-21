@@ -1,5 +1,6 @@
 package com.yaycate.cafecampus.ui.cliente
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +32,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.data.local.entity.Producto
@@ -38,6 +43,8 @@ import com.yaycate.cafecampus.ui.components.AppTopBar
 import com.yaycate.cafecampus.ui.components.CafeButton
 import com.yaycate.cafecampus.ui.components.CafeTextField
 import com.yaycate.cafecampus.ui.components.ProductoIcono
+import com.yaycate.cafecampus.ui.components.recursoImagen
+import com.yaycate.cafecampus.ui.components.slugProducto
 import com.yaycate.cafecampus.viewmodel.MenuAdminViewModel
 
 private val categoriasSugeridas = listOf("Bebidas", "Comidas", "Panadería", "Desayunos", "Almuerzos", "Snacks")
@@ -101,6 +108,7 @@ private fun FormularioContenido(
     onGuardar: (Producto) -> Unit,
     onCancelar: () -> Unit
 ) {
+    val context = LocalContext.current
     var nombre by rememberSaveable { mutableStateOf(existente?.nombre ?: "") }
     var descripcion by rememberSaveable { mutableStateOf(existente?.descripcion ?: "") }
     var categoria by rememberSaveable { mutableStateOf(existente?.categoria ?: "") }
@@ -109,6 +117,9 @@ private fun FormularioContenido(
     }
     var icono by rememberSaveable { mutableStateOf(existente?.icono ?: "plato") }
     var disponible by rememberSaveable { mutableStateOf(existente?.disponible ?: true) }
+
+    val slug = if (nombre.isNotBlank()) slugProducto(nombre) else ""
+    val recursoFoto = if (slug.isNotBlank()) recursoImagen(context, "producto_$slug") else 0
 
     val precio = precioTexto.replace(',', '.').toDoubleOrNull()
     val errorPrecio = if (precioTexto.isNotBlank() && precio == null) "Precio no válido" else null
@@ -122,7 +133,7 @@ private fun FormularioContenido(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Vista previa del icono
+        // Vista previa del producto/icono
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -140,26 +151,39 @@ private fun FormularioContenido(
                 Box(
                     modifier = Modifier
                         .size(72.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(
-                            color = MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(12.dp)
+                            color = MaterialTheme.colorScheme.surface
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    ProductoIcono(
-                        icono = icono,
-                        modifier = Modifier.size(40.dp)
-                    )
+                    if (recursoFoto != 0) {
+                        Image(
+                            painter = painterResource(id = recursoFoto),
+                            contentDescription = nombre,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        ProductoIcono(
+                            icono = icono,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
                 }
                 Column {
                     Text(
-                        text = "Icono del producto",
+                        text = "Vista previa",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = "Elige uno de los iconos de abajo",
+                        text = if (recursoFoto != 0) {
+                            "Mostrando imagen del producto"
+                        } else {
+                            "Elige uno de los iconos de abajo"
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )

@@ -1,5 +1,6 @@
 package com.yaycate.cafecampus.ui.cliente
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -41,12 +42,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.data.local.entity.Producto
 import com.yaycate.cafecampus.ui.components.AppTopBar
 import com.yaycate.cafecampus.ui.components.ProductoIcono
+import com.yaycate.cafecampus.ui.components.recursoImagen
+import com.yaycate.cafecampus.ui.components.slugProducto
 import com.yaycate.cafecampus.viewmodel.MenuAdminViewModel
-import androidx.compose.foundation.rememberScrollState as rememberScrollStateAlias
 
 private const val TODO_CATEGORIAS = "Todo"
 
@@ -57,6 +63,7 @@ fun MenuAdminScreen(
     onNuevo: () -> Unit,
     onVolver: () -> Unit
 ) {
+    val context = LocalContext.current
     val productos by vm.productos.collectAsState()
     var aEliminar by remember { mutableStateOf<Producto?>(null) }
     var categoriaElegida by rememberSaveable { mutableStateOf(TODO_CATEGORIAS) }
@@ -125,6 +132,9 @@ fun MenuAdminScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(mostrados, key = { it.id }) { producto ->
+                        val slug = slugProducto(producto.nombre)
+                        val recursoFoto = recursoImagen(context, "producto_$slug")
+
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
@@ -141,16 +151,25 @@ fun MenuAdminScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(56.dp)
+                                        .clip(RoundedCornerShape(12.dp))
                                         .background(
-                                            color = MaterialTheme.colorScheme.primaryContainer,
-                                            shape = RoundedCornerShape(12.dp)
+                                            color = MaterialTheme.colorScheme.primaryContainer
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    ProductoIcono(
-                                        icono = producto.icono,
-                                        modifier = Modifier.size(32.dp)
-                                    )
+                                    if (recursoFoto != 0) {
+                                        Image(
+                                            painter = painterResource(id = recursoFoto),
+                                            contentDescription = producto.nombre,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else {
+                                        ProductoIcono(
+                                            icono = producto.icono,
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
                                 }
 
                                 Column(

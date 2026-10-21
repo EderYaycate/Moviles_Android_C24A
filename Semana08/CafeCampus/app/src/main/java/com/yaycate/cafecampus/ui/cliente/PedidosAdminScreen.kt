@@ -14,14 +14,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -38,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.data.local.relation.PedidoConDetalle
 import com.yaycate.cafecampus.model.EstadoPedido
 import com.yaycate.cafecampus.ui.components.AppTopBar
+import com.yaycate.cafecampus.ui.components.obtenerIniciales
 import com.yaycate.cafecampus.ui.theme.EstadoListo
 import com.yaycate.cafecampus.ui.theme.EstadoPreparando
 import com.yaycate.cafecampus.ui.theme.EstadoRecibido
@@ -162,10 +160,11 @@ private fun TarjetaPedidoAdmin(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        Text(
+                            text = obtenerIniciales(item.cliente.nombre),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                     Column(modifier = Modifier.weight(1f)) {
