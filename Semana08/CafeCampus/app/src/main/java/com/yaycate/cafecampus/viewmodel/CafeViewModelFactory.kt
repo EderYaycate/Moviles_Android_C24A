@@ -16,7 +16,7 @@ class CafeViewModelFactory(
             modelClass.isAssignableFrom(SesionViewModel::class.java) ->
                 SesionViewModel(repo, prefs) as T
             modelClass.isAssignableFrom(MenuViewModel::class.java) ->
-                MenuViewModel(repo) as T
+                MenuViewModel(repo, prefs) as T
             modelClass.isAssignableFrom(PedidosClienteViewModel::class.java) ->
                 PedidosClienteViewModel(repo) as T
             modelClass.isAssignableFrom(PanelViewModel::class.java) ->

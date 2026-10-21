@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yaycate.cafecampus.data.local.entity.Producto
 import com.yaycate.cafecampus.data.local.relation.PedidoConDetalle
+import com.yaycate.cafecampus.data.prefs.PreferenciasStore
 import com.yaycate.cafecampus.data.repository.CafeRepository
 import com.yaycate.cafecampus.model.ItemCarrito
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
+enum class OrdenMenu {
+    RECOMENDADOS,
+    PRECIO_MENOR_MAYOR,
+    PRECIO_MAYOR_MENOR
+}
+
+class MenuViewModel(
+    private val repo: CafeRepository,
+    private val prefs: PreferenciasStore
+) : ViewModel() {
 
     // Lista de productos que se actualiza sola cuando cambia la base de datos
     val productos: StateFlow<List<Producto>> = repo.observarProductos()
@@ -33,12 +43,42 @@ class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
         _busqueda.value = texto
     }
 
-    val productosFiltrados: StateFlow<List<Producto>> = combine(productos, _busqueda) { lista, query ->
+    private val _orden = MutableStateFlow(OrdenMenu.RECOMENDADOS)
+    val orden: StateFlow<OrdenMenu> = _orden.asStateFlow()
+
+    fun cambiarOrden(nuevoOrden: OrdenMenu) {
+        _orden.value = nuevoOrden
+    }
+
+    val favoritos: StateFlow<Set<Int>> = prefs.favoritos
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptySet()
+        )
+
+    fun toggleFavorito(id: Int) {
+        viewModelScope.launch {
+            prefs.toggleFavorito(id)
+        }
+    }
+
+    val productosFiltrados: StateFlow<List<Producto>> = combine(
+        productos,
+        _busqueda,
+        _orden
+    ) { lista, query, ordenActual ->
         val queryLimpia = query.trim()
-        if (queryLimpia.isBlank()) {
+        val filtrada = if (queryLimpia.isBlank()) {
             lista
         } else {
             lista.filter { it.nombre.contains(queryLimpia, ignoreCase = true) }
+        }
+
+        when (ordenActual) {
+            OrdenMenu.RECOMENDADOS -> filtrada
+            OrdenMenu.PRECIO_MENOR_MAYOR -> filtrada.sortedBy { it.precio }
+            OrdenMenu.PRECIO_MAYOR_MENOR -> filtrada.sortedByDescending { it.precio }
         }
     }.stateIn(
         scope = viewModelScope,
@@ -50,13 +90,38 @@ class MenuViewModel(private val repo: CafeRepository) : ViewModel() {
     private val _carrito = MutableStateFlow<List<ItemCarrito>>(emptyList())
     val carrito: StateFlow<List<ItemCarrito>> = _carrito.asStateFlow()
 
-    val totalCarrito: StateFlow<Double> = _carrito
+    private val _metodoPago = MutableStateFlow("Pagar en caja")
+    val metodoPago: StateFlow<String> = _metodoPago.asStateFlow()
+
+    fun cambiarMetodoPago(pago: String) {
+        _metodoPago.value = pago
+    }
+
+    val subtotalCarrito: StateFlow<Double> = _carrito
         .map { items -> items.sumOf { it.precio * it.cantidad } }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = 0.0
         )
+
+    val recargoPago: StateFlow<Double> = _metodoPago
+        .map { pago ->
+            if (pago.equals("Yape", ignoreCase = true) || pago.equals("Plin", ignoreCase = true)) 1.0 else 0.0
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0.0
+        )
+
+    val totalCarrito: StateFlow<Double> = combine(subtotalCarrito, recargoPago) { subtotal, recargo ->
+        if (subtotal > 0.0) subtotal + recargo else 0.0
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = 0.0
+    )
 
     // Agrega el producto; si ya estaba en el carrito, suma la cantidad
     fun agregar(producto: Producto, cantidad: Int, nota: String = "") {

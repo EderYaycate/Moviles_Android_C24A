@@ -1,5 +1,6 @@
 package com.yaycate.cafecampus.ui.cliente
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -13,12 +14,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
@@ -31,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -40,10 +45,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yaycate.cafecampus.data.local.entity.Producto
 import com.yaycate.cafecampus.ui.components.ProductoIcono
+import com.yaycate.cafecampus.ui.components.recursoImagen
+import com.yaycate.cafecampus.ui.components.slugProducto
 import com.yaycate.cafecampus.viewmodel.MenuViewModel
+import com.yaycate.cafecampus.viewmodel.OrdenMenu
 
 private const val TODAS = "Todo"
 
@@ -53,9 +67,12 @@ fun MenuScreen(
     onProductoClick: (Int) -> Unit,
     onVerCarrito: () -> Unit
 ) {
+    val context = LocalContext.current
     val productos by vm.productos.collectAsState()
     val productosFiltrados by vm.productosFiltrados.collectAsState()
     val busqueda by vm.busqueda.collectAsState()
+    val ordenActual by vm.orden.collectAsState()
+    val favoritos by vm.favoritos.collectAsState()
     val carrito by vm.carrito.collectAsState()
     val cantidadTotal = carrito.sumOf { it.cantidad }
 
@@ -66,6 +83,8 @@ fun MenuScreen(
     val mostrados = productosFiltrados.filter { p ->
         seleccion == TODAS || p.categoria == seleccion
     }
+
+    val productosFav = productos.filter { it.id in favoritos }
 
     Scaffold { relleno ->
         Column(
@@ -85,7 +104,7 @@ fun MenuScreen(
                     Text(
                         text = "¡Hola!",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "¿Qué se te antoja hoy?",
@@ -121,6 +140,33 @@ fun MenuScreen(
                 shape = RoundedCornerShape(50)
             )
 
+            // Sección de Favoritos si existe al menos uno
+            if (productosFav.isNotEmpty()) {
+                Text(
+                    text = "Favoritos",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    productosFav.forEach { prod ->
+                        TarjetaFavoritoPequena(
+                            producto = prod,
+                            onClick = { onProductoClick(prod.id) },
+                            onToggleFavorito = { vm.toggleFavorito(prod.id) }
+                        )
+                    }
+                }
+            }
+
+            Text(
+                text = "Categorías",
+                style = MaterialTheme.typography.titleMedium
+            )
             Row(
                 modifier = Modifier.horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -132,6 +178,31 @@ fun MenuScreen(
                         label = { Text(cat) }
                     )
                 }
+            }
+
+            Text(
+                text = "Ordenar por",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = ordenActual == OrdenMenu.RECOMENDADOS,
+                    onClick = { vm.cambiarOrden(OrdenMenu.RECOMENDADOS) },
+                    label = { Text("Recomendados") }
+                )
+                FilterChip(
+                    selected = ordenActual == OrdenMenu.PRECIO_MENOR_MAYOR,
+                    onClick = { vm.cambiarOrden(OrdenMenu.PRECIO_MENOR_MAYOR) },
+                    label = { Text("Precio: menor a mayor") }
+                )
+                FilterChip(
+                    selected = ordenActual == OrdenMenu.PRECIO_MAYOR_MENOR,
+                    onClick = { vm.cambiarOrden(OrdenMenu.PRECIO_MAYOR_MENOR) },
+                    label = { Text("Precio: mayor a menor") }
+                )
             }
 
             Text(
@@ -158,8 +229,10 @@ fun MenuScreen(
                         fila.forEach { producto ->
                             TarjetaProducto(
                                 producto = producto,
+                                esFavorito = producto.id in favoritos,
                                 onClick = { onProductoClick(producto.id) },
                                 onAgregar = { vm.agregar(producto, 1) },
+                                onToggleFavorito = { vm.toggleFavorito(producto.id) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -174,12 +247,93 @@ fun MenuScreen(
 }
 
 @Composable
-private fun TarjetaProducto(
+private fun TarjetaFavoritoPequena(
     producto: Producto,
     onClick: () -> Unit,
+    onToggleFavorito: () -> Unit
+) {
+    val context = LocalContext.current
+    val slug = slugProducto(producto.nombre)
+    val recursoFoto = recursoImagen(context, "producto_$slug")
+
+    Card(
+        modifier = Modifier
+            .width(130.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(70.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                if (recursoFoto != 0) {
+                    Image(
+                        painter = painterResource(id = recursoFoto),
+                        contentDescription = producto.nombre,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    ProductoIcono(icono = producto.icono, modifier = Modifier.size(36.dp))
+                }
+
+                Surface(
+                    onClick = onToggleFavorito,
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = "Favorito",
+                        tint = Color(0xFFEF4444),
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .size(16.dp)
+                    )
+                }
+            }
+
+            Text(
+                text = producto.nombre,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+            Text(
+                text = "S/ %.2f".format(producto.precio),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
+private fun TarjetaProducto(
+    producto: Producto,
+    esFavorito: Boolean,
+    onClick: () -> Unit,
     onAgregar: () -> Unit,
+    onToggleFavorito: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val slug = slugProducto(producto.nombre)
+    val recursoFoto = recursoImagen(context, "producto_$slug")
+
     Card(
         modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
@@ -195,23 +349,49 @@ private fun TarjetaProducto(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = RoundedCornerShape(12.dp)
-                    ),
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(color = MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                ProductoIcono(
-                    icono = producto.icono,
-                    modifier = Modifier.size(56.dp)
-                )
+                if (recursoFoto != 0) {
+                    Image(
+                        painter = painterResource(id = recursoFoto),
+                        contentDescription = producto.nombre,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    ProductoIcono(
+                        icono = producto.icono,
+                        modifier = Modifier.size(56.dp)
+                    )
+                }
+
+                Surface(
+                    onClick = onToggleFavorito,
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(6.dp)
+                        .size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = if (esFavorito) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorito",
+                        tint = if (esFavorito) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .size(18.dp)
+                    )
+                }
             }
 
             Text(
                 text = producto.nombre,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                maxLines = 2
+                fontWeight = FontWeight.Bold,
+maxLines = 2
             )
 
             Row(

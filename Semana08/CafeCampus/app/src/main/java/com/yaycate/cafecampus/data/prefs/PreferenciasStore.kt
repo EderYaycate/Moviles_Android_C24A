@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.yaycate.cafecampus.model.Rol
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +21,7 @@ class PreferenciasStore(private val context: Context) {
     private val modoOscuroKey = booleanPreferencesKey("modoOscuro")
     private val recibirKey = booleanPreferencesKey("recibirPedidos")
     private val notificacionesKey = booleanPreferencesKey("notificaciones")
+    private val favoritosKey = stringSetPreferencesKey("favoritos")
 
     // Lectura (Flow, una por preferencia)
     val perfilActivo: Flow<String> =
@@ -38,6 +40,12 @@ class PreferenciasStore(private val context: Context) {
     // Avisos de nuevos pedidos para el administrador
     val notificaciones: Flow<Boolean> =
         context.dataStore.data.map { it[notificacionesKey] ?: true }
+
+    // Conjunto de ids de productos favoritos
+    val favoritos: Flow<Set<Int>> =
+        context.dataStore.data.map { prefs ->
+            prefs[favoritosKey]?.mapNotNull { it.toIntOrNull() }?.toSet() ?: emptySet()
+        }
 
     // Escritura (suspend)
     suspend fun guardarPerfil(rol: Rol) {
@@ -58,6 +66,19 @@ class PreferenciasStore(private val context: Context) {
 
     suspend fun guardarNotificaciones(b: Boolean) {
         context.dataStore.edit { it[notificacionesKey] = b }
+    }
+
+    suspend fun toggleFavorito(id: Int) {
+        context.dataStore.edit { prefs ->
+            val actuales = prefs[favoritosKey]?.toMutableSet() ?: mutableSetOf()
+            val idStr = id.toString()
+            if (actuales.contains(idStr)) {
+                actuales.remove(idStr)
+            } else {
+                actuales.add(idStr)
+            }
+            prefs[favoritosKey] = actuales
+        }
     }
 
     suspend fun cerrarSesion() {

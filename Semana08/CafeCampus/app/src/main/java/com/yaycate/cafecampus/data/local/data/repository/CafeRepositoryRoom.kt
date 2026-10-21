@@ -47,7 +47,8 @@ class CafeRepositoryRoom(private val db: CafeDatabase) : CafeRepository {
                 precioUnitario = it.precio
             )
         }
-        val total = items.sumOf { it.precio * it.cantidad }
+        val recargo = if (pago.equals("Yape", ignoreCase = true) || pago.equals("Plin", ignoreCase = true)) 1.0 else 0.0
+        val total = items.sumOf { it.precio * it.cantidad } + recargo
         val pedido = Pedido(
             clienteId = clienteId,
             estado = EstadoPedido.RECIBIDO.name,
