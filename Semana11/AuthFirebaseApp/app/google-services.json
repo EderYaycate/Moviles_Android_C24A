@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "212682427790",
+    "project_id": "authfirebaseapp-34726",
+    "storage_bucket": "authfirebaseapp-34726.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:212682427790:android:c98d1d9af4a28476ff28df",
+        "android_client_info": {
+          "package_name": "com.yaycate.authfirebaseapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPp-B2B0CSWzI3IZ65ul3Kv41BN2LgNcw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
