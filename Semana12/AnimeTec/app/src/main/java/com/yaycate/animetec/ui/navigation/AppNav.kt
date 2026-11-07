@@ -3,6 +3,7 @@ package com.yaycate.animetec.ui.navigation
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
@@ -28,19 +29,43 @@ import com.yaycate.animetec.ui.favoritos.FavoritosRoute
 import com.yaycate.animetec.ui.favoritos.FavoritosViewModel
 import com.yaycate.animetec.ui.lista.ListaRoute
 import com.yaycate.animetec.ui.lista.ListaViewModel
+import com.yaycate.animetec.ui.login.LoginRoute
+import com.yaycate.animetec.ui.login.LoginViewModel
+import com.yaycate.animetec.ui.login.SesionViewModel
 
+private const val RUTA_LOGIN = "login"
 private const val RUTA_LISTA = "lista"
 private const val RUTA_FAVORITOS = "favoritos"
 
 @Composable
 fun AppNav(container: AppContainer) {
     val nav = rememberNavController()
+    val sesionVm: SesionViewModel = viewModel(factory = ViewModelFactory(container))
 
-    NavHost(navController = nav, startDestination = RUTA_LISTA) {
+    val cerrarSesion = {
+        sesionVm.cerrarSesion()
+        nav.navigate(RUTA_LOGIN) {
+            popUpTo(nav.graph.id) { inclusive = true }
+        }
+    }
+
+    NavHost(navController = nav, startDestination = RUTA_LOGIN) {
+
+        composable(RUTA_LOGIN) {
+            val vm: LoginViewModel = viewModel(factory = ViewModelFactory(container))
+            LoginRoute(
+                viewModel = vm,
+                onSesionIniciada = {
+                    nav.navigate(RUTA_LISTA) {
+                        popUpTo(RUTA_LOGIN) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         composable(RUTA_LISTA) {
             val vm: ListaViewModel = viewModel(factory = ViewModelFactory(container))
-            ConBarraInferior(nav, actual = RUTA_LISTA) { padding ->
+            ConBarraInferior(nav, actual = RUTA_LISTA, onCerrarSesion = cerrarSesion) { padding ->
                 ListaRoute(
                     viewModel = vm,
                     onItemClick = { id -> nav.navigate("detalle/$id") },
@@ -51,7 +76,7 @@ fun AppNav(container: AppContainer) {
 
         composable(RUTA_FAVORITOS) {
             val vm: FavoritosViewModel = viewModel(factory = ViewModelFactory(container))
-            ConBarraInferior(nav, actual = RUTA_FAVORITOS) { padding ->
+            ConBarraInferior(nav, actual = RUTA_FAVORITOS, onCerrarSesion = cerrarSesion) { padding ->
                 FavoritosRoute(
                     viewModel = vm,
                     onItemClick = { id -> nav.navigate("detalle/$id") },
@@ -78,6 +103,7 @@ fun AppNav(container: AppContainer) {
 private fun ConBarraInferior(
     nav: NavController,
     actual: String,
+    onCerrarSesion: () -> Unit,
     contenido: @Composable (PaddingValues) -> Unit
 ) {
     Scaffold(
@@ -94,6 +120,12 @@ private fun ConBarraInferior(
                     onClick = { irA(nav, RUTA_FAVORITOS) },
                     icon = { Icon(Icons.Default.Favorite, contentDescription = "Favoritos") },
                     label = { Text("Favoritos") }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onCerrarSesion,
+                    icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión") },
+                    label = { Text("Salir") }
                 )
             }
         }

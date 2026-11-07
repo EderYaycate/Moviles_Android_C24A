@@ -6,6 +6,8 @@ import com.yaycate.animetec.AppContainer
 import com.yaycate.animetec.ui.detalle.DetalleViewModel
 import com.yaycate.animetec.ui.favoritos.FavoritosViewModel
 import com.yaycate.animetec.ui.lista.ListaViewModel
+import com.yaycate.animetec.ui.login.LoginViewModel
+import com.yaycate.animetec.ui.login.SesionViewModel
 
 class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -14,6 +16,10 @@ class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.
             ListaViewModel(container.itemRepository, container.notificador) as T
         modelClass.isAssignableFrom(FavoritosViewModel::class.java) ->
             FavoritosViewModel(container.itemRepository) as T
+        modelClass.isAssignableFrom(LoginViewModel::class.java) ->
+            LoginViewModel(container.authRepository) as T
+        modelClass.isAssignableFrom(SesionViewModel::class.java) ->
+            SesionViewModel(container.authRepository) as T
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     }
 }
@@ -26,4 +32,5 @@ class DetalleViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
         DetalleViewModel(container.itemRepository, id) as T
+
 }
