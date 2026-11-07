@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.yaycate.animetec.domain.model.Item
 import com.yaycate.animetec.ui.UiState
+import com.yaycate.animetec.ui.components.AvisoBanner
 import com.yaycate.animetec.ui.components.Cargando
 import com.yaycate.animetec.ui.components.ErrorView
 
@@ -58,15 +59,7 @@ fun ListaRoute(
                 }
             } else {
                 Column(modifier) {
-                    aviso?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                        )
-                    }
+                    aviso?.let { AvisoBanner(it) }
                     ListaScreen(
                         items = e.datos,
                         onItemClick = onItemClick,

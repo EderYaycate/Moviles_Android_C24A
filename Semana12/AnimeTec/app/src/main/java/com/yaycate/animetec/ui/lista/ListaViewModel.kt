@@ -28,6 +28,7 @@ class ListaViewModel(
 
     init {
         viewModelScope.launch {
+            // La lista siempre sale de Room
             repo.items.collect { lista ->
                 if (lista.isNotEmpty() || refrescoTerminado) _estado.value = UiState.Exito(lista)
             }
@@ -37,6 +38,9 @@ class ListaViewModel(
 
     fun refrescar() {
         viewModelScope.launch {
+            // Si veníamos de un error, volvemos a mostrar "Cargando"
+            if (_estado.value is UiState.Error) _estado.value = UiState.Cargando
+
             val resultado = repo.refrescar()
             refrescoTerminado = true
             resultado
@@ -46,8 +50,13 @@ class ListaViewModel(
                     notificador.mostrar("Datos actualizados", "Se guardaron $n elementos")
                 }
                 .onFailure { e ->
-                    if (repo.cantidadGuardada() == 0) _estado.value = UiState.Error(mensajeDe(e))
-                    else _aviso.value = "Sin conexión: mostrando datos guardados"
+                    if (repo.cantidadGuardada() == 0) {
+                        // Nada guardado: pantalla de error con Reintentar
+                        _estado.value = UiState.Error(mensajeDe(e))
+                    } else {
+                        // Hay datos guardados: se muestran con un aviso
+                        _aviso.value = avisoDe(e)
+                    }
                 }
         }
     }
@@ -60,5 +69,11 @@ class ListaViewModel(
         is IOException -> "No hay conexión a internet"
         is HttpException -> "El servidor respondió con error ${e.code()}"
         else -> "Ocurrió un error inesperado"
+    }
+
+    private fun avisoDe(e: Throwable) = when (e) {
+        is IOException -> "Sin conexión: mostrando datos guardados"
+        is HttpException -> "No se pudo actualizar (error ${e.code()}): mostrando datos guardados"
+        else -> "No se pudo actualizar: mostrando datos guardados"
     }
 }
