@@ -1,17 +1,20 @@
 package com.yaycate.animetec
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.yaycate.animetec.data.remote.RetrofitClient
 import com.yaycate.animetec.domain.model.Item
 import com.yaycate.animetec.ui.lista.ListaScreen
 import com.yaycate.animetec.ui.theme.AnimeTecTheme
@@ -24,7 +27,14 @@ class MainActivity : ComponentActivity() {
             AnimeTecTheme {
                 // Datos de prueba: se eliminan en H6 cuando conectemos la API
                 var items by remember { mutableStateOf(datosDePrueba()) }
-
+                LaunchedEffect(Unit) {
+                    try {
+                        val r = RetrofitClient.api.listar()
+                        Log.d("KITSU", "Recibidos ${r.data.size}: ${r.data.first().attributes.canonicalTitle}")
+                    } catch (e: Exception) {
+                        Log.e("KITSU", "Error", e)
+                    }
+                }
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ListaScreen(
                         items = items,
@@ -41,6 +51,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 
 private fun datosDePrueba() = listOf(
     Item(
