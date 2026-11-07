@@ -1,37 +1,37 @@
 package com.yaycate.animetec.data.repository
 
+import com.yaycate.animetec.data.local.ItemDao
+import com.yaycate.animetec.data.mapper.aEntity
 import com.yaycate.animetec.data.mapper.aModelo
 import com.yaycate.animetec.data.remote.ApiService
 import com.yaycate.animetec.domain.model.Item
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
 import java.io.IOException
 
-// Versión temporal: guarda en memoria. En H8 se reemplaza por Room.
-class ItemRepositoryImpl(private val api: ApiService) : ItemRepository {
+class ItemRepositoryImpl(
+    private val api: ApiService,
+    private val dao: ItemDao
+) : ItemRepository {
 
-    private val guardados = MutableStateFlow<List<Item>>(emptyList())
-
-    override val items: Flow<List<Item>> = guardados.asStateFlow()
-    override val favoritos: Flow<List<Item>> = guardados.map { l -> l.filter { it.esFavorito } }
+    // Room es la fuente única de verdad: la UI siempre lee de aquí
+    override val items: Flow<List<Item>> = dao.todos().map { lista -> lista.map { it.aModelo() } }
+    override val favoritos: Flow<List<Item>> = dao.favoritos().map { lista -> lista.map { it.aModelo() } }
 
     override suspend fun refrescar(): Result<Int> = try {
-        // Conservar favoritos al sincronizar
-        val idsFavoritos = guardados.value.filter { it.esFavorito }.map { it.id }.toSet()
+        // Si guardas sin cuidado, pierdes los favoritos. Se conservan aquí:
+        val idsFavoritos = dao.idsFavoritos().toSet()
         val nuevos = api.listar().data
-            .map { it.aModelo() }
-            .map { it.copy(esFavorito = it.id in idsFavoritos) }
-        guardados.value = nuevos
+            .map { dto -> dto.aEntity(esFavorito = dto.id.toInt() in idsFavoritos) }
+        dao.guardarTodos(nuevos)
         Result.success(nuevos.size)
-    } catch (e: IOException) {
+    } catch (e: IOException) {            // sin internet
         Result.failure(e)
-    } catch (e: HttpException) {
+    } catch (e: HttpException) {          // 404, 429, 500...
         Result.failure(e)
-    } catch (e: SerializationException) {
+    } catch (e: SerializationException) { // JSON inesperado
         Result.failure(e)
     }
 
@@ -45,13 +45,8 @@ class ItemRepositoryImpl(private val api: ApiService) : ItemRepository {
         Result.failure(e)
     }
 
-    override suspend fun alternarFavorito(id: Int) {
-        guardados.value = guardados.value.map {
-            if (it.id == id) it.copy(esFavorito = !it.esFavorito) else it
-        }
-    }
-
-    override suspend fun cantidadGuardada() = guardados.value.size
-    override suspend fun cantidadFavoritos() = guardados.value.count { it.esFavorito }
-    override suspend fun limpiarCache() { guardados.value = emptyList() }
+    override suspend fun alternarFavorito(id: Int) = dao.alternarFavorito(id)
+    override suspend fun cantidadGuardada() = dao.contar()
+    override suspend fun cantidadFavoritos() = dao.contarFavoritos()
+    override suspend fun limpiarCache() = dao.borrarTodo()
 }
