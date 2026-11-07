@@ -47,5 +47,19 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
 }
 
 class SesionViewModel(private val repo: AuthRepository) : ViewModel() {
-    fun cerrarSesion() = repo.cerrarSesion()
+
+    private val _sesion = MutableStateFlow<Sesion?>(null)
+    val sesion: StateFlow<Sesion?> = _sesion.asStateFlow()
+
+    init {
+        // Si Android recrea el proceso, recupera la sesión y su rol
+        viewModelScope.launch { _sesion.value = repo.sesionActual() }
+    }
+
+    fun establecer(sesion: Sesion) { _sesion.value = sesion }
+
+    fun cerrarSesion() {
+        repo.cerrarSesion()
+        _sesion.value = null
+    }
 }

@@ -3,6 +3,7 @@ package com.yaycate.animetec.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.yaycate.animetec.AppContainer
+import com.yaycate.animetec.ui.admin.AdminViewModel
 import com.yaycate.animetec.ui.detalle.DetalleViewModel
 import com.yaycate.animetec.ui.favoritos.FavoritosViewModel
 import com.yaycate.animetec.ui.lista.ListaViewModel
@@ -20,6 +21,8 @@ class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.
             LoginViewModel(container.authRepository) as T
         modelClass.isAssignableFrom(SesionViewModel::class.java) ->
             SesionViewModel(container.authRepository) as T
+        modelClass.isAssignableFrom(AdminViewModel::class.java) ->
+            AdminViewModel(container.itemRepository, container.notificador) as T
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     }
 }
