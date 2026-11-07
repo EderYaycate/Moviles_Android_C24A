@@ -8,7 +8,7 @@ import com.yaycate.animetec.data.remote.RetrofitClient
 import com.yaycate.animetec.data.repository.ItemRepository
 import com.yaycate.animetec.data.repository.ItemRepositoryImpl
 import com.yaycate.animetec.notification.Notificador
-import com.yaycate.animetec.notification.NotificadorLog
+import com.yaycate.animetec.notification.NotificadorAndroid
 
 class AppContainer(private val context: Context) {
 
@@ -19,6 +19,5 @@ class AppContainer(private val context: Context) {
     }
 
     val authRepository: AuthRepository by lazy { FirebaseAuthRepository() }
-
-    val notificador: Notificador by lazy { NotificadorLog() }
+    val notificador: Notificador by lazy { NotificadorAndroid(context.applicationContext) }
 }
