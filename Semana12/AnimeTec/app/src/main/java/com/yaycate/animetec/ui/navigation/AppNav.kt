@@ -1,5 +1,9 @@
 package com.yaycate.animetec.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -62,7 +66,14 @@ fun AppNav(container: AppContainer) {
         }
     }
 
-    NavHost(navController = nav, startDestination = RUTA_LOGIN) {
+    NavHost(
+        navController = nav,
+        startDestination = RUTA_LOGIN,
+        enterTransition = { fadeIn(animationSpec = tween(300)) },
+        exitTransition = { fadeOut(animationSpec = tween(300)) },
+        popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+        popExitTransition = { fadeOut(animationSpec = tween(300)) }
+    ) {
 
         composable(RUTA_LOGIN) {
             val vm: LoginViewModel = viewModel(factory = ViewModelFactory(container))
@@ -92,7 +103,13 @@ fun AppNav(container: AppContainer) {
             )
         }
 
-        composable(RUTA_LISTA) {
+        composable(
+            route = RUTA_LISTA,
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+            popExitTransition = { fadeOut(animationSpec = tween(300)) }
+        ) {
             val vm: ListaViewModel = viewModel(factory = ViewModelFactory(container))
             ConBarraInferior(nav, RUTA_LISTA, esAdmin, cerrarSesion) { padding ->
                 ListaRoute(
@@ -103,7 +120,13 @@ fun AppNav(container: AppContainer) {
             }
         }
 
-        composable(RUTA_FAVORITOS) {
+        composable(
+            route = RUTA_FAVORITOS,
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+            popExitTransition = { fadeOut(animationSpec = tween(300)) }
+        ) {
             val vm: FavoritosViewModel = viewModel(factory = ViewModelFactory(container))
             ConBarraInferior(nav, RUTA_FAVORITOS, esAdmin, cerrarSesion) { padding ->
                 FavoritosRoute(
@@ -114,7 +137,13 @@ fun AppNav(container: AppContainer) {
             }
         }
 
-        composable(RUTA_ADMIN) {
+        composable(
+            route = RUTA_ADMIN,
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+            popExitTransition = { fadeOut(animationSpec = tween(300)) }
+        ) {
             if (esAdmin) {
                 val vm: AdminViewModel = viewModel(factory = ViewModelFactory(container))
                 ConBarraInferior(nav, RUTA_ADMIN, esAdmin, cerrarSesion) { padding ->
@@ -128,7 +157,31 @@ fun AppNav(container: AppContainer) {
 
         composable(
             route = "detalle/{id}",
-            arguments = listOf(navArgument("id") { type = NavType.IntType })
+            arguments = listOf(navArgument("id") { type = NavType.IntType }),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.End,
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
         ) { entry ->
             val id = entry.arguments!!.getInt("id")
             val vm: DetalleViewModel = viewModel(

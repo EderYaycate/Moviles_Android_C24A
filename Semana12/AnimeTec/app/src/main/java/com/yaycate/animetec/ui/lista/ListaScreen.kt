@@ -1,5 +1,14 @@
 package com.yaycate.animetec.ui.lista
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,20 +22,25 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,52 +63,65 @@ fun ListaRoute(
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val aviso by viewModel.aviso.collectAsStateWithLifecycle()
 
-    when (val e = estado) {
-        is UiState.Cargando -> Cargando(modifier)
-        is UiState.Error -> ErrorView(
-            mensaje = e.mensaje,
-            onReintentar = viewModel::refrescar,
-            modifier = modifier
-        )
-        is UiState.Exito -> {
-            if (e.datos.isEmpty()) {
-                Column(modifier = modifier.fillMaxSize()) {
-                    aviso?.let { AvisoBanner(it) }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Aún no hay animes guardados",
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = viewModel::refrescar) {
-                            Text("Sincronizar")
+    Crossfade(targetState = estado, modifier = modifier, label = "listaStateCrossfade") { state ->
+        when (val e = state) {
+            is UiState.Cargando -> Cargando()
+            is UiState.Error -> ErrorView(
+                mensaje = e.mensaje,
+                onReintentar = viewModel::refrescar
+            )
+            is UiState.Exito -> {
+                if (e.datos.isEmpty()) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        AnimatedVisibility(
+                            visible = aviso != null,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            aviso?.let { AvisoBanner(it) }
+                        }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .weight(1f)
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Aún no hay animes guardados",
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = viewModel::refrescar) {
+                                Text("Sincronizar")
+                            }
                         }
                     }
-                }
-            } else {
-                Column(modifier) {
-                    aviso?.let { AvisoBanner(it) }
-                    ListaScreen(
-                        items = e.datos,
-                        onItemClick = onItemClick,
-                        onFavorito = viewModel::alternarFavorito,
-                        modifier = Modifier.weight(1f)
-                    )
+                } else {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        AnimatedVisibility(
+                            visible = aviso != null,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            aviso?.let { AvisoBanner(it) }
+                        }
+                        ListaScreen(
+                            items = e.datos,
+                            onItemClick = onItemClick,
+                            onFavorito = viewModel::alternarFavorito,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         }
@@ -118,7 +145,8 @@ fun ListaScreen(
             ItemCard(
                 item = item,
                 onClick = { onItemClick(item.id) },
-                onFavorito = { onFavorito(item.id) }
+                onFavorito = { onFavorito(item.id) },
+                modifier = Modifier.animateItem()
             )
         }
     }
@@ -128,11 +156,21 @@ fun ListaScreen(
 private fun ItemCard(
     item: Item,
     onClick: () -> Unit,
-    onFavorito: () -> Unit
+    onFavorito: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Card(
+    val heartScale by animateFloatAsState(
+        targetValue = if (item.esFavorito) 1.25f else 1.0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "heartScale"
+    )
+
+    ElevatedCard(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -145,6 +183,7 @@ private fun ItemCard(
                 modifier = Modifier
                     .width(80.dp)
                     .height(110.dp)
+                    .clip(RoundedCornerShape(12.dp))
             )
             Column(
                 modifier = Modifier
@@ -157,22 +196,39 @@ private fun ItemCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(Modifier.height(4.dp))
                 Text(
                     text = item.subtitulo,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                item.puntaje?.let {
-                    Text(
-                        text = "Puntaje: $it",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                Spacer(Modifier.height(4.dp))
+                item.puntaje?.let { puntaje ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = puntaje,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
             IconButton(onClick = onFavorito) {
                 Icon(
-                    imageVector = if (item.esFavorito) Icons.Default.Favorite
-                    else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorito"
+                    imageVector = if (item.esFavorito) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorito",
+                    tint = if (item.esFavorito) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = heartScale
+                        scaleY = heartScale
+                    }
                 )
             }
         }

@@ -1,6 +1,11 @@
 package com.yaycate.animetec.ui.detalle
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,12 +17,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -55,24 +63,29 @@ fun DetalleRoute(
             )
         }
     ) { padding ->
-        when (val e = estado) {
-            is UiState.Cargando -> Cargando(Modifier.padding(padding))
-            is UiState.Error -> ErrorView(
-                mensaje = e.mensaje,
-                onReintentar = viewModel::cargar,
-                modifier = Modifier.padding(padding)
-            )
-            is UiState.Exito -> DetalleContenido(
-                item = e.datos,
-                traduccion = traduccion,
-                onTraducir = viewModel::traducirSinopsis,
-                onVerOriginal = viewModel::verOriginal,
-                modifier = Modifier.padding(padding)
-            )
+        AnimatedContent(
+            targetState = estado,
+            modifier = Modifier.padding(padding),
+            label = "detalleStateAnimation"
+        ) { state ->
+            when (val e = state) {
+                is UiState.Cargando -> Cargando()
+                is UiState.Error -> ErrorView(
+                    mensaje = e.mensaje,
+                    onReintentar = viewModel::cargar
+                )
+                is UiState.Exito -> DetalleContenido(
+                    item = e.datos,
+                    traduccion = traduccion,
+                    onTraducir = viewModel::traducirSinopsis,
+                    onVerOriginal = viewModel::verOriginal
+                )
+            }
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DetalleContenido(
     item: Item,
@@ -98,10 +111,46 @@ private fun DetalleContenido(
         Text(item.titulo, style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(8.dp))
         Text(item.subtitulo, style = MaterialTheme.typography.bodyMedium)
-        item.puntaje?.let { Text("Puntaje: $it", style = MaterialTheme.typography.bodyMedium) }
-        item.estado?.let { Text("Estado: $it", style = MaterialTheme.typography.bodyMedium) }
-        item.fechaInicio?.let { Text("Estreno: $it", style = MaterialTheme.typography.bodyMedium) }
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
+
+        item.puntaje?.let { puntaje ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = puntaje,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+
+        val chips = listOfNotNull(
+            item.estado?.let { "Estado: $it" },
+            item.episodios?.let { "$it episodios" },
+            item.fechaInicio?.let { "Estreno: $it" }
+        )
+        if (chips.isNotEmpty()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                chips.forEach { chipText ->
+                    AssistChip(
+                        onClick = {},
+                        label = { Text(chipText) }
+                    )
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+
         Text("Sinopsis", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(4.dp))
 
@@ -109,7 +158,18 @@ private fun DetalleContenido(
             is EstadoTraduccion.Traducida -> traduccion.texto
             else -> item.sinopsis ?: "Sin sinopsis disponible"
         }
-        Text(sinopsisTexto, style = MaterialTheme.typography.bodyMedium)
+
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize()
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(sinopsisTexto, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
 
         if (!item.sinopsis.isNullOrBlank()) {
             Spacer(Modifier.height(8.dp))
