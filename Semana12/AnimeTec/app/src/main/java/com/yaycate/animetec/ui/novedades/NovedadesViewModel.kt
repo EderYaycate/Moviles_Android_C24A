@@ -1,5 +1,6 @@
 package com.yaycate.animetec.ui.novedades
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yaycate.animetec.data.auth.AuthRepository
@@ -39,11 +40,16 @@ class NovedadesViewModel(
 
     private fun observarNovedades() {
         viewModelScope.launch {
-            val sesion = authRepository.sesionActual() ?: return@launch
+            val sesion = authRepository.sesionActual()
+            if (sesion == null) {
+                _uiState.value = _uiState.value.copy(error = "No hay sesión activa")
+                return@launch
+            }
             val ultimaVista = lecturaNovedades.ultimaVista(sesion.uid)
 
             novedadesRepository.observar()
                 .catch { e ->
+                    Log.e("NOVEDADES", "Error al observar novedades", e)
                     _uiState.value = _uiState.value.copy(error = e.message ?: "Error al observar novedades")
                 }
                 .collect { lista ->

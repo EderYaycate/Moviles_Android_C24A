@@ -1,6 +1,6 @@
 package com.yaycate.animetec.data.profile
 
-import com.google.firebase.FirebaseNetworkException
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.yaycate.animetec.domain.model.Perfil
@@ -23,14 +23,19 @@ class FirestorePerfilRepository(
             correo.substringBefore("@").ifBlank { "Usuario" }
         }
         val rol = if (doc.getString("rol") == "admin") Rol.ADMIN else Rol.USUARIO
-        val foto = doc.getString("foto") ?: doc.getString("fotoBase64")
+        val foto = doc.getString("fotoBase64") ?: doc.getString("foto")
         Result.success(Perfil(nombre = nombre, correo = correo, rol = rol, fotoBase64 = foto))
     } catch (e: CancellationException) {
         throw e
-    } catch (e: FirebaseNetworkException) {
-        Result.failure(Exception("No hay conexión a internet"))
     } catch (e: Exception) {
-        Result.failure(e)
+        Log.e("PERFIL", "Error al obtener perfil", e)
+        val msg = if (e.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true ||
+            e.message?.contains("permission") == true) {
+            "No tienes permiso para guardar. Revisa las reglas de Firestore"
+        } else {
+            e.message ?: "Error al obtener perfil"
+        }
+        Result.failure(Exception(msg))
     }
 
     override suspend fun guardarNombre(uid: String, nombre: String): Result<Unit> =
@@ -41,17 +46,22 @@ class FirestorePerfilRepository(
         return try {
             val doc = docRef.get().await()
             if (doc.exists()) {
-                docRef.update(mapOf("foto" to fotoBase64, "fotoBase64" to fotoBase64)).await()
+                docRef.update("fotoBase64", fotoBase64).await()
             } else {
-                docRef.set(mapOf("foto" to fotoBase64, "fotoBase64" to fotoBase64, "rol" to "usuario")).await()
+                docRef.set(mapOf("fotoBase64" to fotoBase64, "rol" to "usuario")).await()
             }
             Result.success(Unit)
         } catch (e: CancellationException) {
             throw e
-        } catch (e: FirebaseNetworkException) {
-            Result.failure(Exception("No hay conexión a internet"))
         } catch (e: Exception) {
-            Result.failure(e)
+            Log.e("PERFIL", "Error al guardar foto", e)
+            val msg = if (e.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true ||
+                e.message?.contains("permission") == true) {
+                "No tienes permiso para guardar. Revisa las reglas de Firestore"
+            } else {
+                e.message ?: "Error al guardar foto"
+            }
+            Result.failure(Exception(msg))
         }
     }
 
@@ -67,10 +77,15 @@ class FirestorePerfilRepository(
             Result.success(Unit)
         } catch (e: CancellationException) {
             throw e
-        } catch (e: FirebaseNetworkException) {
-            Result.failure(Exception("No hay conexión a internet"))
         } catch (e: Exception) {
-            Result.failure(e)
+            Log.e("PERFIL", "Error al guardar campo $campo", e)
+            val msg = if (e.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true ||
+                e.message?.contains("permission") == true) {
+                "No tienes permiso para guardar. Revisa las reglas de Firestore"
+            } else {
+                e.message ?: "Error al guardar perfil"
+            }
+            Result.failure(Exception(msg))
         }
     }
 }

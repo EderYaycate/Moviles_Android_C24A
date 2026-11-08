@@ -1,9 +1,6 @@
 package com.yaycate.animetec.ui.novedades
 
 import android.text.format.DateUtils
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -119,61 +117,70 @@ fun NovedadesScreen(
                             .fillMaxWidth()
                             .animateItem()
                     ) {
-                        Column(
+                        Row(
                             modifier = Modifier
                                 .padding(16.dp)
-                                .fillMaxWidth()
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = novedad.titulo,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.weight(1f)
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(24.dp)
                                 )
-                                Spacer(Modifier.width(8.dp))
-                                Column {
-                                    AnimatedVisibility(
-                                        visible = esNueva,
-                                        enter = fadeIn(),
-                                        exit = fadeOut()
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(10.dp)
-                                                .background(
-                                                    color = MaterialTheme.colorScheme.primary,
-                                                    shape = CircleShape
-                                                )
-                                        )
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = novedad.titulo,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    if (esNueva) {
+                                        Badge {
+                                            Text("Nuevo")
+                                        }
                                     }
                                 }
-                            }
 
-                            Spacer(Modifier.height(6.dp))
-                            Text(
-                                text = novedad.mensaje,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-
-                            Spacer(Modifier.height(8.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
+                                Spacer(Modifier.height(4.dp))
                                 Text(
-                                    text = tiempoRelativo,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = novedad.mensaje,
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
 
-                                novedad.animeId?.let { animeId ->
-                                    TextButton(onClick = { onVerAnime(animeId) }) {
-                                        Text("Ver anime")
+                                Spacer(Modifier.height(8.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = tiempoRelativo,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+
+                                    novedad.animeId?.let { animeId ->
+                                        TextButton(onClick = { onVerAnime(animeId) }) {
+                                            Text("Ver anime")
+                                        }
                                     }
                                 }
                             }
