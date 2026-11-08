@@ -9,6 +9,7 @@ import com.yaycate.animetec.ui.favoritos.FavoritosViewModel
 import com.yaycate.animetec.ui.lista.ListaViewModel
 import com.yaycate.animetec.ui.login.LoginViewModel
 import com.yaycate.animetec.ui.login.SesionViewModel
+import com.yaycate.animetec.ui.perfil.PerfilViewModel
 import com.yaycate.animetec.ui.registro.RegistroViewModel
 
 class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.Factory {
@@ -26,6 +27,8 @@ class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.
             AdminViewModel(container.itemRepository, container.notificador) as T
         modelClass.isAssignableFrom(RegistroViewModel::class.java) ->
             RegistroViewModel(container.authRepository) as T
+        modelClass.isAssignableFrom(PerfilViewModel::class.java) ->
+            PerfilViewModel(container.authRepository, container.perfilRepository, container.procesadorFoto) as T
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     }
 }

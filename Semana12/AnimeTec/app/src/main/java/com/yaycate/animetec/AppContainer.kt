@@ -4,6 +4,10 @@ import android.content.Context
 import com.yaycate.animetec.data.auth.AuthRepository
 import com.yaycate.animetec.data.auth.FirebaseAuthRepository
 import com.yaycate.animetec.data.local.AppDatabase
+import com.yaycate.animetec.data.profile.FirestorePerfilRepository
+import com.yaycate.animetec.data.profile.PerfilRepository
+import com.yaycate.animetec.data.profile.ProcesadorFoto
+import com.yaycate.animetec.data.profile.ProcesadorFotoAndroid
 import com.yaycate.animetec.data.remote.RetrofitClient
 import com.yaycate.animetec.data.repository.ItemRepository
 import com.yaycate.animetec.data.repository.ItemRepositoryImpl
@@ -23,4 +27,6 @@ class AppContainer(private val context: Context) {
     val authRepository: AuthRepository by lazy { FirebaseAuthRepository() }
     val notificador: Notificador by lazy { NotificadorAndroid(context.applicationContext) }
     val traductor: Traductor by lazy { TraductorMlKit() }
+    val perfilRepository: PerfilRepository by lazy { FirestorePerfilRepository() }
+    val procesadorFoto: ProcesadorFoto by lazy { ProcesadorFotoAndroid(context.applicationContext) }
 }

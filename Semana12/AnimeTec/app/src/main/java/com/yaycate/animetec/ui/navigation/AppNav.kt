@@ -7,15 +7,18 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,11 +46,14 @@ import com.yaycate.animetec.ui.lista.ListaViewModel
 import com.yaycate.animetec.ui.login.LoginRoute
 import com.yaycate.animetec.ui.login.LoginViewModel
 import com.yaycate.animetec.ui.login.SesionViewModel
+import com.yaycate.animetec.ui.perfil.PerfilRoute
+import com.yaycate.animetec.ui.perfil.PerfilViewModel
 import com.yaycate.animetec.ui.registro.RegistroRoute
 import com.yaycate.animetec.ui.registro.RegistroViewModel
 
 private const val RUTA_LOGIN = "login"
 private const val RUTA_REGISTRO = "registro"
+private const val RUTA_PERFIL = "perfil"
 private const val RUTA_LISTA = "lista"
 private const val RUTA_FAVORITOS = "favoritos"
 private const val RUTA_ADMIN = "admin"
@@ -58,13 +64,6 @@ fun AppNav(container: AppContainer) {
     val sesionVm: SesionViewModel = viewModel(factory = ViewModelFactory(container))
     val sesion by sesionVm.sesion.collectAsStateWithLifecycle()
     val esAdmin = sesion?.rol == Rol.ADMIN
-
-    val cerrarSesion = {
-        sesionVm.cerrarSesion()
-        nav.navigate(RUTA_LOGIN) {
-            popUpTo(nav.graph.id) { inclusive = true }
-        }
-    }
 
     NavHost(
         navController = nav,
@@ -103,6 +102,20 @@ fun AppNav(container: AppContainer) {
             )
         }
 
+        composable(RUTA_PERFIL) {
+            val vm: PerfilViewModel = viewModel(factory = ViewModelFactory(container))
+            PerfilRoute(
+                viewModel = vm,
+                onVolver = { nav.popBackStack() },
+                onCerrarSesion = {
+                    sesionVm.cerrarSesion()
+                    nav.navigate(RUTA_LOGIN) {
+                        popUpTo(nav.graph.id) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(
             route = RUTA_LISTA,
             enterTransition = { fadeIn(animationSpec = tween(300)) },
@@ -111,7 +124,7 @@ fun AppNav(container: AppContainer) {
             popExitTransition = { fadeOut(animationSpec = tween(300)) }
         ) {
             val vm: ListaViewModel = viewModel(factory = ViewModelFactory(container))
-            ConBarraInferior(nav, RUTA_LISTA, esAdmin, cerrarSesion) { padding ->
+            ConBarraInferior(nav, RUTA_LISTA, esAdmin) { padding ->
                 ListaRoute(
                     viewModel = vm,
                     onItemClick = { id -> nav.navigate("detalle/$id") },
@@ -128,7 +141,7 @@ fun AppNav(container: AppContainer) {
             popExitTransition = { fadeOut(animationSpec = tween(300)) }
         ) {
             val vm: FavoritosViewModel = viewModel(factory = ViewModelFactory(container))
-            ConBarraInferior(nav, RUTA_FAVORITOS, esAdmin, cerrarSesion) { padding ->
+            ConBarraInferior(nav, RUTA_FAVORITOS, esAdmin) { padding ->
                 FavoritosRoute(
                     viewModel = vm,
                     onItemClick = { id -> nav.navigate("detalle/$id") },
@@ -146,7 +159,7 @@ fun AppNav(container: AppContainer) {
         ) {
             if (esAdmin) {
                 val vm: AdminViewModel = viewModel(factory = ViewModelFactory(container))
-                ConBarraInferior(nav, RUTA_ADMIN, esAdmin, cerrarSesion) { padding ->
+                ConBarraInferior(nav, RUTA_ADMIN, esAdmin) { padding ->
                     AdminRoute(viewModel = vm, modifier = Modifier.padding(padding))
                 }
             } else {
@@ -193,15 +206,25 @@ fun AppNav(container: AppContainer) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ConBarraInferior(
     nav: NavController,
     actual: String,
     esAdmin: Boolean,
-    onCerrarSesion: () -> Unit,
     contenido: @Composable (PaddingValues) -> Unit
 ) {
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("AnimeTec") },
+                actions = {
+                    IconButton(onClick = { nav.navigate(RUTA_PERFIL) }) {
+                        Icon(Icons.Default.Person, contentDescription = "Perfil")
+                    }
+                }
+            )
+        },
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
@@ -224,12 +247,6 @@ private fun ConBarraInferior(
                         label = { Text("Admin") }
                     )
                 }
-                NavigationBarItem(
-                    selected = false,
-                    onClick = onCerrarSesion,
-                    icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión") },
-                    label = { Text("Salir") }
-                )
             }
         }
     ) { padding -> contenido(padding) }
