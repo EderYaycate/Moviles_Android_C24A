@@ -4,6 +4,10 @@ import android.content.Context
 import com.yaycate.animetec.data.auth.AuthRepository
 import com.yaycate.animetec.data.auth.FirebaseAuthRepository
 import com.yaycate.animetec.data.local.AppDatabase
+import com.yaycate.animetec.data.novedades.FirestoreNovedadesRepository
+import com.yaycate.animetec.data.novedades.LecturaNovedades
+import com.yaycate.animetec.data.novedades.LecturaNovedadesPrefs
+import com.yaycate.animetec.data.novedades.NovedadesRepository
 import com.yaycate.animetec.data.profile.FirestorePerfilRepository
 import com.yaycate.animetec.data.profile.PerfilRepository
 import com.yaycate.animetec.data.profile.ProcesadorFoto
@@ -29,4 +33,6 @@ class AppContainer(private val context: Context) {
     val traductor: Traductor by lazy { TraductorMlKit() }
     val perfilRepository: PerfilRepository by lazy { FirestorePerfilRepository() }
     val procesadorFoto: ProcesadorFoto by lazy { ProcesadorFotoAndroid(context.applicationContext) }
+    val novedadesRepository: NovedadesRepository by lazy { FirestoreNovedadesRepository() }
+    val lecturaNovedades: LecturaNovedades by lazy { LecturaNovedadesPrefs(context.applicationContext) }
 }
