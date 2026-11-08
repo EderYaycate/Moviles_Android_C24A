@@ -1,16 +1,24 @@
 package com.yaycate.animetec.ui.login
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.yaycate.animetec.R
 import com.yaycate.animetec.domain.model.Sesion
 import com.yaycate.animetec.ui.UiState
 
@@ -126,11 +134,21 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .systemBarsPadding()
+            .verticalScroll(rememberScrollState())
             .imePadding()
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Image(
+            painter = painterResource(R.drawable.logo_animetec),
+            contentDescription = "Logo de AnimeTec",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(120.dp)
+                .clip(RoundedCornerShape(24.dp))
+        )
+        Spacer(Modifier.height(16.dp))
         Text("AnimeTec", style = MaterialTheme.typography.headlineLarge)
         Spacer(Modifier.height(24.dp))
 
