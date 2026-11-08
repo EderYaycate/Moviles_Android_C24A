@@ -3,6 +3,7 @@ package com.yaycate.animetec.ui.admin
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,6 +37,32 @@ fun AdminScreen(
     onLimpiar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var mostrarDialogoBorrar by rememberSaveable { mutableStateOf(false) }
+
+    if (mostrarDialogoBorrar) {
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoBorrar = false },
+            title = { Text("¿Borrar todos los animes guardados?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        mostrarDialogoBorrar = false
+                        onLimpiar()
+                    }
+                ) {
+                    Text("Borrar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { mostrarDialogoBorrar = false }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -64,7 +91,7 @@ fun AdminScreen(
         ) { Text(if (ocupado) "Trabajando..." else "Sincronizar") }
 
         OutlinedButton(
-            onClick = onLimpiar,
+            onClick = { mostrarDialogoBorrar = true },
             enabled = !ocupado,
             modifier = Modifier.fillMaxWidth()
         ) { Text("Limpiar caché") }
