@@ -23,7 +23,11 @@ import com.yaycate.animetec.domain.model.Sesion
 import com.yaycate.animetec.ui.UiState
 
 @Composable
-fun LoginRoute(viewModel: LoginViewModel, onSesionIniciada: (Sesion) -> Unit) {
+fun LoginRoute(
+    viewModel: LoginViewModel,
+    onSesionIniciada: (Sesion) -> Unit,
+    onIrARegistro: () -> Unit = {}
+) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val resultadoRecuperacion by viewModel.resultadoRecuperacion.collectAsStateWithLifecycle()
     var correo by rememberSaveable { mutableStateOf("") }
@@ -43,7 +47,8 @@ fun LoginRoute(viewModel: LoginViewModel, onSesionIniciada: (Sesion) -> Unit) {
         onClaveChange = { clave = it; viewModel.limpiarError() },
         onIngresar = { viewModel.iniciarSesion(correo, clave) },
         onRecuperarClave = { email -> viewModel.recuperarClave(email) },
-        onLimpiarRecuperacion = { viewModel.limpiarRecuperacion() }
+        onLimpiarRecuperacion = { viewModel.limpiarRecuperacion() },
+        onIrARegistro = onIrARegistro
     )
 }
 
@@ -58,7 +63,8 @@ fun LoginScreen(
     onClaveChange: (String) -> Unit,
     onIngresar: () -> Unit,
     onRecuperarClave: (String) -> Unit,
-    onLimpiarRecuperacion: () -> Unit
+    onLimpiarRecuperacion: () -> Unit,
+    onIrARegistro: () -> Unit = {}
 ) {
     var mostrarDialogo by remember { mutableStateOf(false) }
     var correoRecuperacion by remember(correo, mostrarDialogo) { mutableStateOf(correo) }
@@ -201,6 +207,14 @@ fun LoginScreen(
             enabled = !cargando
         ) {
             Text("¿Olvidaste tu contraseña?")
+        }
+
+        Spacer(Modifier.height(4.dp))
+        TextButton(
+            onClick = onIrARegistro,
+            enabled = !cargando
+        ) {
+            Text("¿Eres nuevo? Regístrate")
         }
     }
 }

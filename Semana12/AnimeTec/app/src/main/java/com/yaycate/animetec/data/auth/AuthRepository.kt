@@ -7,4 +7,9 @@ interface AuthRepository {
     suspend fun sesionActual(): Sesion? // null si no hay sesión
     fun cerrarSesion()
     suspend fun recuperarClave(correo: String): Result<Unit>
+    suspend fun registrar(correo: String, clave: String): Result<Sesion>
 }
+
+class CorreoYaRegistradoException : Exception()
+class ClaveDebilException : Exception()
+class CorreoInvalidoException : Exception()

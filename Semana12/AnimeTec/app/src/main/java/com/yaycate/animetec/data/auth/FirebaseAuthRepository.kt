@@ -4,6 +4,8 @@ import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.yaycate.animetec.domain.model.Rol
 import com.yaycate.animetec.domain.model.Sesion
@@ -58,9 +60,30 @@ class FirebaseAuthRepository(
         Result.failure(e)
     }
 
+    override suspend fun registrar(correo: String, clave: String): Result<Sesion> = try {
+        val uid = auth.createUserWithEmailAndPassword(correo, clave).await().user!!.uid
+        Result.success(leerSesion(uid, correo))
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: FirebaseAuthUserCollisionException) {
+        Result.failure(CorreoYaRegistradoException())
+    } catch (e: FirebaseAuthWeakPasswordException) {
+        Result.failure(ClaveDebilException())
+    } catch (e: FirebaseAuthInvalidCredentialsException) {
+        Result.failure(CorreoInvalidoException())
+    } catch (e: FirebaseNetworkException) {
+        Result.failure(SinConexionException())
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     private suspend fun leerSesion(uid: String, correo: String): Sesion {
-        val doc = db.collection("usuarios").document(uid).get().await()
-        val rol = if (doc.getString("rol") == "admin") Rol.ADMIN else Rol.USUARIO
+        val rol = try {
+            val doc = db.collection("usuarios").document(uid).get().await()
+            if (doc.exists() && doc.getString("rol") == "admin") Rol.ADMIN else Rol.USUARIO
+        } catch (e: Exception) {
+            Rol.USUARIO
+        }
         return Sesion(uid, correo, rol)
     }
 }

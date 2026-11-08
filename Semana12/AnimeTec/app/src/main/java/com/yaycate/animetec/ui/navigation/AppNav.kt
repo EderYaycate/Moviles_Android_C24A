@@ -39,8 +39,11 @@ import com.yaycate.animetec.ui.lista.ListaViewModel
 import com.yaycate.animetec.ui.login.LoginRoute
 import com.yaycate.animetec.ui.login.LoginViewModel
 import com.yaycate.animetec.ui.login.SesionViewModel
+import com.yaycate.animetec.ui.registro.RegistroRoute
+import com.yaycate.animetec.ui.registro.RegistroViewModel
 
 private const val RUTA_LOGIN = "login"
+private const val RUTA_REGISTRO = "registro"
 private const val RUTA_LISTA = "lista"
 private const val RUTA_FAVORITOS = "favoritos"
 private const val RUTA_ADMIN = "admin"
@@ -68,9 +71,24 @@ fun AppNav(container: AppContainer) {
                 onSesionIniciada = { s ->
                     sesionVm.establecer(s)
                     nav.navigate(RUTA_LISTA) {
-                        popUpTo(RUTA_LOGIN) { inclusive = true }
+                        popUpTo(nav.graph.id) { inclusive = true }
                     }
-                }
+                },
+                onIrARegistro = { nav.navigate(RUTA_REGISTRO) }
+            )
+        }
+
+        composable(RUTA_REGISTRO) {
+            val vm: RegistroViewModel = viewModel(factory = ViewModelFactory(container))
+            RegistroRoute(
+                viewModel = vm,
+                onSesionIniciada = { s ->
+                    sesionVm.establecer(s)
+                    nav.navigate(RUTA_LISTA) {
+                        popUpTo(nav.graph.id) { inclusive = true }
+                    }
+                },
+                onVolverLogin = { nav.popBackStack() }
             )
         }
 
