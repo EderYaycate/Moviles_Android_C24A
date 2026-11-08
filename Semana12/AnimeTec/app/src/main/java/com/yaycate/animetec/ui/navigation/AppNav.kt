@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -33,6 +34,7 @@ import com.yaycate.animetec.ui.DetalleViewModelFactory
 import com.yaycate.animetec.ui.ViewModelFactory
 import com.yaycate.animetec.ui.admin.AdminRoute
 import com.yaycate.animetec.ui.admin.AdminViewModel
+import com.yaycate.animetec.ui.admin.NovedadesAdminViewModel
 import com.yaycate.animetec.ui.detalle.DetalleRoute
 import com.yaycate.animetec.ui.detalle.DetalleViewModel
 import com.yaycate.animetec.ui.favoritos.FavoritosRoute
@@ -174,8 +176,13 @@ fun AppNav(container: AppContainer) {
         ) {
             if (esAdmin) {
                 val vm: AdminViewModel = viewModel(factory = ViewModelFactory(container))
+                val novedadesAdminVm: NovedadesAdminViewModel = viewModel(factory = ViewModelFactory(container))
                 ConBarraInferior(nav, RUTA_ADMIN, esAdmin, sinLeer) { padding ->
-                    AdminRoute(viewModel = vm, modifier = Modifier.padding(padding))
+                    AdminRoute(
+                        viewModel = vm,
+                        novedadesAdminViewModel = novedadesAdminVm,
+                        modifier = Modifier.padding(padding)
+                    )
                 }
             } else {
                 // Un usuario sin rol admin nunca ve esta pantalla

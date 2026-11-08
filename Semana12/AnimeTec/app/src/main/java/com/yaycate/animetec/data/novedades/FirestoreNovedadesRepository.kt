@@ -6,6 +6,7 @@ import com.yaycate.animetec.domain.model.Novedad
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 
 class FirestoreNovedadesRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -37,5 +38,33 @@ class FirestoreNovedadesRepository(
                 }
             }
         awaitClose { listener.remove() }
+    }
+
+    override suspend fun publicar(titulo: String, mensaje: String, animeId: Int?): Result<Unit> = try {
+        val data = mutableMapOf<String, Any>(
+            "titulo" to titulo,
+            "mensaje" to mensaje,
+            "fecha" to System.currentTimeMillis()
+        )
+        if (animeId != null) {
+            data["animeId"] = animeId
+        }
+        db.collection("novedades").add(data).await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        val msg = if (e.message?.contains("PERMISSION_DENIED", ignoreCase = true) == true ||
+            e.message?.contains("permission") == true) {
+            "No tienes permiso para publicar"
+        } else {
+            e.message ?: "Error al publicar novedad"
+        }
+        Result.failure(Exception(msg))
+    }
+
+    override suspend fun eliminar(id: String): Result<Unit> = try {
+        db.collection("novedades").document(id).delete().await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 }

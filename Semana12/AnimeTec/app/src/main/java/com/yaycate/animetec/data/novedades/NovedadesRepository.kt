@@ -5,4 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface NovedadesRepository {
     fun observar(): Flow<List<Novedad>>
+    suspend fun publicar(titulo: String, mensaje: String, animeId: Int?): Result<Unit>
+    suspend fun eliminar(id: String): Result<Unit>
 }

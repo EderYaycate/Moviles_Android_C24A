@@ -1,19 +1,30 @@
 package com.yaycate.animetec.ui.admin
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.yaycate.animetec.domain.model.Novedad
 import com.yaycate.animetec.ui.UiState
 
 @Composable
-fun AdminRoute(viewModel: AdminViewModel, modifier: Modifier = Modifier) {
+fun AdminRoute(
+    viewModel: AdminViewModel,
+    novedadesAdminViewModel: NovedadesAdminViewModel,
+    modifier: Modifier = Modifier
+) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val ocupado by viewModel.ocupado.collectAsStateWithLifecycle()
     val aviso by viewModel.aviso.collectAsStateWithLifecycle()
+
+    val novedades by novedadesAdminViewModel.novedades.collectAsStateWithLifecycle()
+    val publicando by novedadesAdminViewModel.publicando.collectAsStateWithLifecycle()
+    val mensajeNovedades by novedadesAdminViewModel.mensaje.collectAsStateWithLifecycle()
 
     // Se recargan los totales cada vez que se entra (los favoritos cambian desde otras pantallas)
     LaunchedEffect(Unit) { viewModel.cargarTotales() }
@@ -24,6 +35,12 @@ fun AdminRoute(viewModel: AdminViewModel, modifier: Modifier = Modifier) {
         aviso = aviso,
         onSincronizar = viewModel::sincronizar,
         onLimpiar = viewModel::limpiarCache,
+        novedades = novedades,
+        publicando = publicando,
+        mensajeNovedades = mensajeNovedades,
+        onPublicarNovedad = novedadesAdminViewModel::publicar,
+        onEliminarNovedad = novedadesAdminViewModel::eliminar,
+        onLimpiarMensajeNovedades = novedadesAdminViewModel::limpiarMensaje,
         modifier = modifier
     )
 }
@@ -35,6 +52,12 @@ fun AdminScreen(
     aviso: String?,
     onSincronizar: () -> Unit,
     onLimpiar: () -> Unit,
+    novedades: List<Novedad> = emptyList(),
+    publicando: Boolean = false,
+    mensajeNovedades: String? = null,
+    onPublicarNovedad: (String, String, String) -> Unit = { _, _, _ -> },
+    onEliminarNovedad: (String) -> Unit = {},
+    onLimpiarMensajeNovedades: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var mostrarDialogoBorrar by rememberSaveable { mutableStateOf(false) }
@@ -66,8 +89,9 @@ fun AdminScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text("Panel Admin", style = MaterialTheme.typography.headlineMedium)
 
@@ -95,6 +119,19 @@ fun AdminScreen(
             enabled = !ocupado,
             modifier = Modifier.fillMaxWidth()
         ) { Text("Limpiar caché") }
+
+        Spacer(Modifier.height(8.dp))
+        Divider()
+        Spacer(Modifier.height(8.dp))
+
+        NovedadesAdminSection(
+            novedades = novedades,
+            publicando = publicando,
+            mensaje = mensajeNovedades,
+            onPublicar = onPublicarNovedad,
+            onEliminar = onEliminarNovedad,
+            onLimpiarMensaje = onLimpiarMensajeNovedades
+        )
     }
 }
 

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.yaycate.animetec.AppContainer
 import com.yaycate.animetec.ui.admin.AdminViewModel
+import com.yaycate.animetec.ui.admin.NovedadesAdminViewModel
 import com.yaycate.animetec.ui.detalle.DetalleViewModel
 import com.yaycate.animetec.ui.favoritos.FavoritosViewModel
 import com.yaycate.animetec.ui.lista.ListaViewModel
@@ -37,6 +38,8 @@ class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.
                 container.lecturaNovedades,
                 container.notificador
             ) as T
+        modelClass.isAssignableFrom(NovedadesAdminViewModel::class.java) ->
+            NovedadesAdminViewModel(container.novedadesRepository) as T
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     }
 }
