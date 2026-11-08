@@ -17,6 +17,9 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
     private val _estado = MutableStateFlow<UiState<Sesion?>>(UiState.Cargando)
     val estado: StateFlow<UiState<Sesion?>> = _estado.asStateFlow()
 
+    private val _resultadoRecuperacion = MutableStateFlow<UiState<String>?>(null)
+    val resultadoRecuperacion: StateFlow<UiState<String>?> = _resultadoRecuperacion.asStateFlow()
+
     init {
         // Sesión persistente: si ya hay un usuario, entra directo
         viewModelScope.launch { _estado.value = UiState.Exito(repo.sesionActual()) }
@@ -35,14 +38,41 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
         }
     }
 
+    fun recuperarClave(correo: String) {
+        val correoTrim = correo.trim()
+        if (correoTrim.isBlank() || !correoTrim.contains("@")) {
+            _resultadoRecuperacion.value = UiState.Error("Ingresa un correo electrónico válido")
+            return
+        }
+        _resultadoRecuperacion.value = UiState.Cargando
+        viewModelScope.launch {
+            repo.recuperarClave(correoTrim)
+                .onSuccess {
+                    _resultadoRecuperacion.value = UiState.Exito("Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña")
+                }
+                .onFailure { e ->
+                    _resultadoRecuperacion.value = UiState.Error(mensajeRecuperacionDe(e))
+                }
+        }
+    }
+
     fun limpiarError() {
         if (_estado.value is UiState.Error) _estado.value = UiState.Exito(null)
+    }
+
+    fun limpiarRecuperacion() {
+        _resultadoRecuperacion.value = null
     }
 
     private fun mensajeDe(e: Throwable) = when (e) {
         is CredencialesInvalidasException -> "Correo o contraseña incorrectos"
         is SinConexionException -> "No hay conexión a internet"
         else -> "No se pudo iniciar sesión. Intenta de nuevo"
+    }
+
+    private fun mensajeRecuperacionDe(e: Throwable) = when (e) {
+        is SinConexionException -> "No hay conexión a internet"
+        else -> e.message ?: "No se pudo enviar el correo de recuperación. Intenta de nuevo"
     }
 }
 

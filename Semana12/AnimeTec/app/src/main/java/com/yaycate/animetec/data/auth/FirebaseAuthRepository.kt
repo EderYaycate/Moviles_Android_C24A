@@ -43,6 +43,21 @@ class FirebaseAuthRepository(
 
     override fun cerrarSesion() = auth.signOut()
 
+    override suspend fun recuperarClave(correo: String): Result<Unit> = try {
+        auth.sendPasswordResetEmail(correo).await()
+        Result.success(Unit)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: FirebaseNetworkException) {
+        Result.failure(SinConexionException())
+    } catch (e: FirebaseAuthInvalidCredentialsException) {
+        Result.failure(Exception("Correo con formato inválido"))
+    } catch (e: IllegalArgumentException) {
+        Result.failure(Exception("Correo con formato inválido"))
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     private suspend fun leerSesion(uid: String, correo: String): Sesion {
         val doc = db.collection("usuarios").document(uid).get().await()
         val rol = if (doc.getString("rol") == "admin") Rol.ADMIN else Rol.USUARIO

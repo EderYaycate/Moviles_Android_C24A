@@ -17,6 +17,7 @@ import com.yaycate.animetec.ui.UiState
 @Composable
 fun LoginRoute(viewModel: LoginViewModel, onSesionIniciada: (Sesion) -> Unit) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    val resultadoRecuperacion by viewModel.resultadoRecuperacion.collectAsStateWithLifecycle()
     var correo by rememberSaveable { mutableStateOf("") }
     var clave by rememberSaveable { mutableStateOf("") }
 
@@ -29,9 +30,12 @@ fun LoginRoute(viewModel: LoginViewModel, onSesionIniciada: (Sesion) -> Unit) {
         clave = clave,
         cargando = e is UiState.Cargando,
         error = (e as? UiState.Error)?.mensaje,
+        resultadoRecuperacion = resultadoRecuperacion,
         onCorreoChange = { correo = it; viewModel.limpiarError() },
         onClaveChange = { clave = it; viewModel.limpiarError() },
-        onIngresar = { viewModel.iniciarSesion(correo, clave) }
+        onIngresar = { viewModel.iniciarSesion(correo, clave) },
+        onRecuperarClave = { email -> viewModel.recuperarClave(email) },
+        onLimpiarRecuperacion = { viewModel.limpiarRecuperacion() }
     )
 }
 
@@ -41,10 +45,83 @@ fun LoginScreen(
     clave: String,
     cargando: Boolean,
     error: String?,
+    resultadoRecuperacion: UiState<String>?,
     onCorreoChange: (String) -> Unit,
     onClaveChange: (String) -> Unit,
-    onIngresar: () -> Unit
+    onIngresar: () -> Unit,
+    onRecuperarClave: (String) -> Unit,
+    onLimpiarRecuperacion: () -> Unit
 ) {
+    var mostrarDialogo by remember { mutableStateOf(false) }
+    var correoRecuperacion by remember(correo, mostrarDialogo) { mutableStateOf(correo) }
+
+    if (mostrarDialogo) {
+        AlertDialog(
+            onDismissRequest = {
+                mostrarDialogo = false
+                onLimpiarRecuperacion()
+            },
+            title = { Text("Recuperar contraseña") },
+            text = {
+                Column {
+                    Text("Ingresa tu correo electrónico para restablecer tu contraseña:")
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = correoRecuperacion,
+                        onValueChange = {
+                            correoRecuperacion = it
+                            onLimpiarRecuperacion()
+                        },
+                        label = { Text("Correo") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (resultadoRecuperacion != null) {
+                        Spacer(Modifier.height(8.dp))
+                        when (resultadoRecuperacion) {
+                            is UiState.Exito -> {
+                                Text(
+                                    text = resultadoRecuperacion.datos,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            is UiState.Error -> {
+                                Text(
+                                    text = resultadoRecuperacion.mensaje,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                            is UiState.Cargando -> {
+                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onRecuperarClave(correoRecuperacion)
+                    },
+                    enabled = resultadoRecuperacion !is UiState.Cargando
+                ) {
+                    Text("Enviar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        mostrarDialogo = false
+                        onLimpiarRecuperacion()
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -94,6 +171,18 @@ fun LoginScreen(
             } else {
                 Text("Ingresar")
             }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        TextButton(
+            onClick = {
+                correoRecuperacion = correo
+                onLimpiarRecuperacion()
+                mostrarDialogo = true
+            },
+            enabled = !cargando
+        ) {
+            Text("¿Olvidaste tu contraseña?")
         }
     }
 }
