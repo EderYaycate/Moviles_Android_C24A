@@ -2,6 +2,7 @@ package com.yaycate.animetec.ui.perfil
 
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -29,15 +30,18 @@ import com.yaycate.animetec.domain.model.Perfil
 import com.yaycate.animetec.ui.UiState
 import com.yaycate.animetec.ui.components.Cargando
 import com.yaycate.animetec.ui.components.ErrorView
+import com.yaycate.animetec.ui.theme.ModoTema
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilRoute(
     viewModel: PerfilViewModel,
+    modifier: Modifier = Modifier,
+    modoTema: ModoTema = ModoTema.SISTEMA,
+    onCambiarModo: (ModoTema) -> Unit = {},
     onVolver: () -> Unit,
-    onCerrarSesion: () -> Unit,
-    modifier: Modifier = Modifier
+    onCerrarSesion: () -> Unit
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val mensaje by viewModel.mensaje.collectAsStateWithLifecycle()
@@ -79,6 +83,8 @@ fun PerfilRoute(
                 )
                 is UiState.Exito -> PerfilContenido(
                     perfil = e.datos,
+                    modoTema = modoTema,
+                    onCambiarModo = onCambiarModo,
                     guardando = guardando,
                     onGuardarNombre = viewModel::guardarNombre,
                     onCambiarFoto = viewModel::cambiarFoto,
@@ -92,9 +98,12 @@ fun PerfilRoute(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PerfilContenido(
     perfil: Perfil,
+    modoTema: ModoTema,
+    onCambiarModo: (ModoTema) -> Unit,
     guardando: Boolean,
     onGuardarNombre: (String) -> Unit,
     onCambiarFoto: (String) -> Unit,
@@ -195,7 +204,7 @@ private fun PerfilContenido(
         OutlinedButton(
             onClick = {
                 photoPickerLauncher.launch(
-                    androidx.activity.result.PickVisualMediaRequest(
+                    PickVisualMediaRequest(
                         ActivityResultContracts.PickVisualMedia.ImageOnly
                     )
                 )
@@ -250,6 +259,37 @@ private fun PerfilContenido(
                 onClick = {},
                 label = { Text("Rol: ${perfil.rol.name}") }
             )
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text("Apariencia", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SegmentedButton(
+                    selected = modoTema == ModoTema.SISTEMA,
+                    onClick = { onCambiarModo(ModoTema.SISTEMA) },
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
+                ) {
+                    Text("Sistema")
+                }
+                SegmentedButton(
+                    selected = modoTema == ModoTema.CLARO,
+                    onClick = { onCambiarModo(ModoTema.CLARO) },
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
+                ) {
+                    Text("Claro")
+                }
+                SegmentedButton(
+                    selected = modoTema == ModoTema.OSCURO,
+                    onClick = { onCambiarModo(ModoTema.OSCURO) },
+                    shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
+                ) {
+                    Text("Oscuro")
+                }
+            }
         }
 
         Spacer(Modifier.height(16.dp))

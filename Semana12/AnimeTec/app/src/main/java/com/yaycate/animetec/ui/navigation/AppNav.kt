@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -50,6 +49,7 @@ import com.yaycate.animetec.ui.perfil.PerfilRoute
 import com.yaycate.animetec.ui.perfil.PerfilViewModel
 import com.yaycate.animetec.ui.registro.RegistroRoute
 import com.yaycate.animetec.ui.registro.RegistroViewModel
+import com.yaycate.animetec.ui.theme.ModoTema
 
 private const val RUTA_LOGIN = "login"
 private const val RUTA_REGISTRO = "registro"
@@ -60,7 +60,11 @@ private const val RUTA_FAVORITOS = "favoritos"
 private const val RUTA_ADMIN = "admin"
 
 @Composable
-fun AppNav(container: AppContainer) {
+fun AppNav(
+    container: AppContainer,
+    modoTema: ModoTema = ModoTema.SISTEMA,
+    onCambiarModo: (ModoTema) -> Unit = {}
+) {
     val nav = rememberNavController()
     val sesionVm: SesionViewModel = viewModel(factory = ViewModelFactory(container))
     val sesion by sesionVm.sesion.collectAsStateWithLifecycle()
@@ -115,6 +119,8 @@ fun AppNav(container: AppContainer) {
             val vm: PerfilViewModel = viewModel(factory = ViewModelFactory(container))
             PerfilRoute(
                 viewModel = vm,
+                modoTema = modoTema,
+                onCambiarModo = onCambiarModo,
                 onVolver = { nav.popBackStack() },
                 onCerrarSesion = {
                     sesionVm.cerrarSesion()

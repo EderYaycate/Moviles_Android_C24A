@@ -13,6 +13,7 @@ import com.yaycate.animetec.ui.login.SesionViewModel
 import com.yaycate.animetec.ui.novedades.NovedadesViewModel
 import com.yaycate.animetec.ui.perfil.PerfilViewModel
 import com.yaycate.animetec.ui.registro.RegistroViewModel
+import com.yaycate.animetec.ui.theme.TemaViewModel
 
 class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -40,6 +41,8 @@ class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.
             ) as T
         modelClass.isAssignableFrom(NovedadesAdminViewModel::class.java) ->
             NovedadesAdminViewModel(container.novedadesRepository) as T
+        modelClass.isAssignableFrom(TemaViewModel::class.java) ->
+            TemaViewModel(container.ajustesTema) as T
         else -> throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
     }
 }

@@ -15,6 +15,8 @@ import com.yaycate.animetec.data.profile.ProcesadorFotoAndroid
 import com.yaycate.animetec.data.remote.RetrofitClient
 import com.yaycate.animetec.data.repository.ItemRepository
 import com.yaycate.animetec.data.repository.ItemRepositoryImpl
+import com.yaycate.animetec.data.settings.AjustesTema
+import com.yaycate.animetec.data.settings.AjustesTemaPrefs
 import com.yaycate.animetec.notification.Notificador
 import com.yaycate.animetec.notification.NotificadorAndroid
 import com.yaycate.animetec.translation.Traductor
@@ -35,4 +37,5 @@ class AppContainer(private val context: Context) {
     val procesadorFoto: ProcesadorFoto by lazy { ProcesadorFotoAndroid(context.applicationContext) }
     val novedadesRepository: NovedadesRepository by lazy { FirestoreNovedadesRepository() }
     val lecturaNovedades: LecturaNovedades by lazy { LecturaNovedadesPrefs(context.applicationContext) }
+    val ajustesTema: AjustesTema by lazy { AjustesTemaPrefs(context.applicationContext) }
 }
