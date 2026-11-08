@@ -9,6 +9,8 @@ import com.yaycate.animetec.data.repository.ItemRepository
 import com.yaycate.animetec.data.repository.ItemRepositoryImpl
 import com.yaycate.animetec.notification.Notificador
 import com.yaycate.animetec.notification.NotificadorAndroid
+import com.yaycate.animetec.translation.Traductor
+import com.yaycate.animetec.translation.TraductorMlKit
 
 class AppContainer(private val context: Context) {
 
@@ -20,4 +22,5 @@ class AppContainer(private val context: Context) {
 
     val authRepository: AuthRepository by lazy { FirebaseAuthRepository() }
     val notificador: Notificador by lazy { NotificadorAndroid(context.applicationContext) }
+    val traductor: Traductor by lazy { TraductorMlKit() }
 }
