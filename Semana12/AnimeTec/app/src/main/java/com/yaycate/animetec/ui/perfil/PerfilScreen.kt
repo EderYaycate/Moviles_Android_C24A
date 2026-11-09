@@ -382,7 +382,7 @@ private fun PerfilContenido(
                 AnimatedVisibility(
                     visible = guardando,
                     enter = fadeIn(),
-                    exit = fadeOut()
+                    exit = Q@fadeOut()
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
