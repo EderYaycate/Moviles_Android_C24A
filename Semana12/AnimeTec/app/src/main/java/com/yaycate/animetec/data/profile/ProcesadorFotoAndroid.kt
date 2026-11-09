@@ -3,7 +3,10 @@ package com.yaycate.animetec.data.profile
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
+import android.os.Build
 import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,6 +20,28 @@ class ProcesadorFotoAndroid(
         try {
             val parsedUri = Uri.parse(uri)
             
+            val matrix = Matrix()
+            try {
+                context.contentResolver.openInputStream(parsedUri)?.use { inputStream ->
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        val exif = ExifInterface(inputStream)
+                        val orientation = exif.getAttributeInt(
+                            ExifInterface.TAG_ORIENTATION,
+                            ExifInterface.ORIENTATION_NORMAL
+                        )
+                        when (orientation) {
+                            ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                            ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                            ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+                            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.postScale(-1f, 1f)
+                            ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.postScale(1f, -1f)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Si falla EXIF, continuar sin rotación
+            }
+
             val options = BitmapFactory.Options().apply {
                 inJustDecodeBounds = true
             }
@@ -39,9 +64,14 @@ class ProcesadorFotoAndroid(
                 this.inSampleSize = inSampleSize
             }
             
-            val bitmap = context.contentResolver.openInputStream(parsedUri)?.use { inputStream ->
+            val rawBitmap = context.contentResolver.openInputStream(parsedUri)?.use { inputStream ->
                 BitmapFactory.decodeStream(inputStream, null, decodeOptions)
             } ?: return@withContext Result.failure(Exception("No se pudo leer la imagen"))
+
+            val bitmap = Bitmap.createBitmap(rawBitmap, 0, 0, rawBitmap.width, rawBitmap.height, matrix, true)
+            if (bitmap != rawBitmap) {
+                rawBitmap.recycle()
+            }
 
             val width = bitmap.width
             val height = bitmap.height

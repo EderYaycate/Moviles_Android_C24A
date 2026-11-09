@@ -1,12 +1,17 @@
 package com.yaycate.animetec.ui.admin
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yaycate.animetec.domain.model.Novedad
@@ -89,58 +94,122 @@ fun AdminScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Panel Admin", style = MaterialTheme.typography.headlineMedium)
+        // Encabezado con Box de fondo Brush.verticalGradient de primaryContainer a surface y el texto "⚙️ Panel de administración"
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
+                .padding(24.dp)
+        ) {
+            Text(
+                text = "⚙️ Panel de administración",
+                style = MaterialTheme.typography.headlineMedium
+            )
+        }
 
-        when (estado) {
-            is UiState.Cargando -> CircularProgressIndicator()
-            is UiState.Error -> Text(estado.mensaje, color = MaterialTheme.colorScheme.error)
-            is UiState.Exito -> {
-                TarjetaTotal("Animes guardados", estado.datos.guardados)
-                TarjetaTotal("Favoritos", estado.datos.favoritos)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            when (estado) {
+                is UiState.Cargando -> CircularProgressIndicator()
+                is UiState.Error -> Text(estado.mensaje, color = MaterialTheme.colorScheme.error)
+                is UiState.Exito -> {
+                    // Totales (guardados y favoritos) en dos ElevatedCard lado a lado con emoji grande (📚 y ❤️), número en headlineLarge y etiqueta pequeña
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TarjetaTotal(
+                            emoji = "📚",
+                            titulo = "Animes guardados",
+                            total = estado.datos.guardados,
+                            modifier = Modifier.weight(1f)
+                        )
+                        TarjetaTotal(
+                            emoji = "❤️",
+                            titulo = "Favoritos",
+                            total = estado.datos.favoritos,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
             }
+
+            if (aviso != null) {
+                Text(aviso, color = MaterialTheme.colorScheme.primary)
+            }
+
+            // Botón Sincronizar con ícono Refresh y colores primary
+            Button(
+                onClick = onSincronizar,
+                enabled = !ocupado,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(if (ocupado) "Trabajando..." else "Sincronizar")
+            }
+
+            // Limpiar caché como OutlinedButton con color de error
+            OutlinedButton(
+                onClick = { mostrarDialogoBorrar = true },
+                enabled = !ocupado,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Limpiar caché")
+            }
+
+            Spacer(Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(8.dp))
+
+            NovedadesAdminSection(
+                novedades = novedades,
+                publicando = publicando,
+                mensaje = mensajeNovedades,
+                onPublicar = onPublicarNovedad,
+                onEliminar = onEliminarNovedad,
+                onLimpiarMensaje = onLimpiarMensajeNovedades
+            )
+
+            Spacer(Modifier.height(24.dp))
         }
-
-        if (aviso != null) {
-            Text(aviso, color = MaterialTheme.colorScheme.primary)
-        }
-
-        Button(
-            onClick = onSincronizar,
-            enabled = !ocupado,
-            modifier = Modifier.fillMaxWidth()
-        ) { Text(if (ocupado) "Trabajando..." else "Sincronizar") }
-
-        OutlinedButton(
-            onClick = { mostrarDialogoBorrar = true },
-            enabled = !ocupado,
-            modifier = Modifier.fillMaxWidth()
-        ) { Text("Limpiar caché") }
-
-        Spacer(Modifier.height(8.dp))
-        Divider()
-        Spacer(Modifier.height(8.dp))
-
-        NovedadesAdminSection(
-            novedades = novedades,
-            publicando = publicando,
-            mensaje = mensajeNovedades,
-            onPublicar = onPublicarNovedad,
-            onEliminar = onEliminarNovedad,
-            onLimpiarMensaje = onLimpiarMensajeNovedades
-        )
     }
 }
 
 @Composable
-private fun TarjetaTotal(titulo: String, total: Int) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Text(titulo, style = MaterialTheme.typography.labelLarge)
+private fun TarjetaTotal(emoji: String, titulo: String, total: Int, modifier: Modifier = Modifier) {
+    ElevatedCard(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
+            Text(emoji, style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.height(8.dp))
             Text(total.toString(), style = MaterialTheme.typography.headlineLarge)
+            Spacer(Modifier.height(4.dp))
+            Text(titulo, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

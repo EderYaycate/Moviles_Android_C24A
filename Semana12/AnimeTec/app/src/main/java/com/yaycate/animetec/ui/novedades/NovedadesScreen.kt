@@ -14,7 +14,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +37,7 @@ fun NovedadesRoute(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Novedades") },
+                title = { Text("🔔 Novedades") },
                 navigationIcon = {
                     IconButton(onClick = onVolver) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -60,14 +63,26 @@ fun NovedadesScreen(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         uiState.error?.let { err ->
-            Text(
-                text = err,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
+            val errorMessage = if (err.contains("PERMISSION_DENIED", ignoreCase = true) || err.contains("permission", ignoreCase = true)) {
+                "No tienes permiso para ver las novedades. Revisa las reglas de Firestore"
+            } else {
+                "No se pudieron cargar las novedades"
+            }
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            )
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
 
         if (uiState.novedades.isEmpty()) {
@@ -79,14 +94,10 @@ fun NovedadesScreen(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(24.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    Text(text = "📭", fontSize = 64.sp)
                     Spacer(Modifier.height(16.dp))
                     Text(
                         text = "Aún no hay novedades",
@@ -123,17 +134,21 @@ fun NovedadesScreen(
                                 .fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            val primary = MaterialTheme.colorScheme.primary
+                            val secondary = MaterialTheme.colorScheme.secondary
+                            val circleBrush = Brush.linearGradient(listOf(primary, secondary))
+
                             Box(
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                    .background(circleBrush),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Notifications,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
@@ -149,11 +164,15 @@ fun NovedadesScreen(
                                     Text(
                                         text = novedad.titulo,
                                         style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
                                         modifier = Modifier.weight(1f)
                                     )
                                     Spacer(Modifier.width(8.dp))
                                     if (esNueva) {
-                                        Badge {
+                                        Badge(
+                                            containerColor = MaterialTheme.colorScheme.primary,
+                                            contentColor = MaterialTheme.colorScheme.onPrimary
+                                        ) {
                                             Text("Nuevo")
                                         }
                                     }
@@ -171,14 +190,18 @@ fun NovedadesScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = tiempoRelativo,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    AssistChip(
+                                        onClick = {},
+                                        label = { Text(tiempoRelativo) },
+                                        modifier = Modifier.height(26.dp)
                                     )
 
                                     novedad.animeId?.let { animeId ->
-                                        TextButton(onClick = { onVerAnime(animeId) }) {
+                                        FilledTonalButton(
+                                            onClick = { onVerAnime(animeId) },
+                                            modifier = Modifier.height(32.dp),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+                                        ) {
                                             Text("Ver anime")
                                         }
                                     }
