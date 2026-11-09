@@ -34,6 +34,7 @@ import com.yaycate.animetec.ui.ViewModelFactory
 import com.yaycate.animetec.ui.admin.AdminRoute
 import com.yaycate.animetec.ui.admin.AdminViewModel
 import com.yaycate.animetec.ui.admin.NovedadesAdminViewModel
+import com.yaycate.animetec.ui.components.TituloAnimeTec
 import com.yaycate.animetec.ui.detalle.DetalleRoute
 import com.yaycate.animetec.ui.detalle.DetalleViewModel
 import com.yaycate.animetec.ui.favoritos.FavoritosRoute
@@ -246,7 +247,7 @@ private fun ConBarraInferior(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("AnimeTec") },
+                title = { TituloAnimeTec(style = MaterialTheme.typography.titleLarge) },
                 actions = {
                     IconButton(onClick = { nav.navigate(RUTA_NOVEDADES) }) {
                         BadgedBox(
