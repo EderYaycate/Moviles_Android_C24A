@@ -12,13 +12,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+data class MensajeRecuperacion(val texto: String, val esExito: Boolean)
+
 class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
 
     private val _estado = MutableStateFlow<UiState<Sesion?>>(UiState.Cargando)
     val estado: StateFlow<UiState<Sesion?>> = _estado.asStateFlow()
 
-    private val _resultadoRecuperacion = MutableStateFlow<UiState<String>?>(null)
-    val resultadoRecuperacion: StateFlow<UiState<String>?> = _resultadoRecuperacion.asStateFlow()
+    private val _resultadoRecuperacion = MutableStateFlow<MensajeRecuperacion?>(null)
+    val resultadoRecuperacion: StateFlow<MensajeRecuperacion?> = _resultadoRecuperacion.asStateFlow()
+
+    private val _cargandoRecuperacion = MutableStateFlow(false)
+    val cargandoRecuperacion: StateFlow<Boolean> = _cargandoRecuperacion.asStateFlow()
 
     init {
         // Sesión persistente: si ya hay un usuario, entra directo
@@ -41,18 +46,20 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
     fun recuperarClave(correo: String) {
         val correoTrim = correo.trim()
         if (correoTrim.isBlank() || !correoTrim.contains("@")) {
-            _resultadoRecuperacion.value = UiState.Error("Ingresa un correo electrónico válido")
+            _resultadoRecuperacion.value = MensajeRecuperacion("Ingresa un correo electrónico válido", false)
             return
         }
-        _resultadoRecuperacion.value = UiState.Cargando
+        _cargandoRecuperacion.value = true
+        _resultadoRecuperacion.value = null
         viewModelScope.launch {
             repo.recuperarClave(correoTrim)
                 .onSuccess {
-                    _resultadoRecuperacion.value = UiState.Exito("Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña")
+                    _resultadoRecuperacion.value = MensajeRecuperacion("Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña", true)
                 }
                 .onFailure { e ->
-                    _resultadoRecuperacion.value = UiState.Error(mensajeRecuperacionDe(e))
+                    _resultadoRecuperacion.value = MensajeRecuperacion(mensajeRecuperacionDe(e), false)
                 }
+            _cargandoRecuperacion.value = false
         }
     }
 
@@ -72,7 +79,7 @@ class LoginViewModel(private val repo: AuthRepository) : ViewModel() {
 
     private fun mensajeRecuperacionDe(e: Throwable) = when (e) {
         is SinConexionException -> "No hay conexión a internet"
-        else -> e.message ?: "No se pudo enviar el correo de recuperación. Intenta de nuevo"
+        else -> e.message ?: "No se pudo enviar el correo. Inténtalo de nuevo"
     }
 }
 

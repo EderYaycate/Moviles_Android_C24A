@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +35,12 @@ fun NovedadesRoute(
         viewModel.marcarVistas()
     }
 
+    LaunchedEffect(uiState.error) {
+        if (uiState.error != null) {
+            viewModel.reintentar()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -50,6 +57,7 @@ fun NovedadesRoute(
         NovedadesScreen(
             uiState = uiState,
             onVerAnime = onVerAnime,
+            onReintentar = viewModel::reintentar,
             modifier = Modifier.padding(padding)
         )
     }
@@ -59,6 +67,7 @@ fun NovedadesRoute(
 fun NovedadesScreen(
     uiState: NovedadesUiState,
     onVerAnime: (Int) -> Unit,
+    onReintentar: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -77,11 +86,18 @@ fun NovedadesScreen(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp)
-                )
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = errorMessage,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(onClick = onReintentar) {
+                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Reintentar")
+                    }
+                }
             }
         }
 

@@ -1,6 +1,8 @@
 package com.yaycate.animetec.data.auth
 
+import android.util.Log
 import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -46,18 +48,24 @@ class FirebaseAuthRepository(
     override fun cerrarSesion() = auth.signOut()
 
     override suspend fun recuperarClave(correo: String): Result<Unit> = try {
-        auth.sendPasswordResetEmail(correo).await()
+        val correoClean = correo.trim().lowercase()
+        auth.useAppLanguage()
+        auth.sendPasswordResetEmail(correoClean).await()
         Result.success(Unit)
     } catch (e: CancellationException) {
         throw e
+    } catch (e: FirebaseAuthInvalidUserException) {
+        // Éxito neutro para no revelar si el correo existe
+        Result.success(Unit)
+    } catch (e: FirebaseAuthInvalidCredentialsException) {
+        Result.failure(Exception("El correo no tiene un formato válido"))
+    } catch (e: FirebaseTooManyRequestsException) {
+        Result.failure(Exception("Demasiados intentos. Espera unos minutos e inténtalo de nuevo"))
     } catch (e: FirebaseNetworkException) {
         Result.failure(SinConexionException())
-    } catch (e: FirebaseAuthInvalidCredentialsException) {
-        Result.failure(Exception("Correo con formato inválido"))
-    } catch (e: IllegalArgumentException) {
-        Result.failure(Exception("Correo con formato inválido"))
     } catch (e: Exception) {
-        Result.failure(e)
+        Log.e("AUTH", "recuperarClave", e)
+        Result.failure(Exception("No se pudo enviar el correo. Inténtalo de nuevo"))
     }
 
     override suspend fun registrar(correo: String, clave: String): Result<Sesion> = try {

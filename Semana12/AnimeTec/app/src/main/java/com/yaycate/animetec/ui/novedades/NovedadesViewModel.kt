@@ -8,6 +8,7 @@ import com.yaycate.animetec.data.novedades.LecturaNovedades
 import com.yaycate.animetec.data.novedades.NovedadesRepository
 import com.yaycate.animetec.domain.model.Novedad
 import com.yaycate.animetec.notification.Notificador
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,13 +34,16 @@ class NovedadesViewModel(
 
     private var isFirstEmission = true
     private var idsConocidos = setOf<String>()
+    private var observeJob: Job? = null
 
     init {
-        observarNovedades()
+        reintentar()
     }
 
-    private fun observarNovedades() {
-        viewModelScope.launch {
+    fun reintentar() {
+        observeJob?.cancel()
+        _uiState.value = _uiState.value.copy(error = null)
+        observeJob = viewModelScope.launch {
             val sesion = authRepository.sesionActual()
             if (sesion == null) {
                 _uiState.value = _uiState.value.copy(error = "No hay sesión activa")

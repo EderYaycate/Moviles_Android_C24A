@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
@@ -45,6 +46,7 @@ fun LoginRoute(
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val resultadoRecuperacion by viewModel.resultadoRecuperacion.collectAsStateWithLifecycle()
+    val cargandoRecuperacion by viewModel.cargandoRecuperacion.collectAsStateWithLifecycle()
     var correo by rememberSaveable { mutableStateOf("") }
     var clave by rememberSaveable { mutableStateOf("") }
 
@@ -58,6 +60,7 @@ fun LoginRoute(
         cargando = e is UiState.Cargando,
         error = (e as? UiState.Error)?.mensaje,
         resultadoRecuperacion = resultadoRecuperacion,
+        cargandoRecuperacion = cargandoRecuperacion,
         onCorreoChange = { correo = it; viewModel.limpiarError() },
         onClaveChange = { clave = it; viewModel.limpiarError() },
         onIngresar = { viewModel.iniciarSesion(correo, clave) },
@@ -73,7 +76,8 @@ fun LoginScreen(
     clave: String,
     cargando: Boolean,
     error: String?,
-    resultadoRecuperacion: UiState<String>?,
+    resultadoRecuperacion: MensajeRecuperacion?,
+    cargandoRecuperacion: Boolean,
     onCorreoChange: (String) -> Unit,
     onClaveChange: (String) -> Unit,
     onIngresar: () -> Unit,
@@ -112,22 +116,20 @@ fun LoginScreen(
                     )
                     if (resultadoRecuperacion != null) {
                         Spacer(Modifier.height(8.dp))
-                        when (resultadoRecuperacion) {
-                            is UiState.Exito -> {
-                                Text(
-                                    text = resultadoRecuperacion.datos,
-                                    color = MaterialTheme.colorScheme.primary
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (resultadoRecuperacion.esExito) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(20.dp)
                                 )
+                                Spacer(Modifier.width(4.dp))
                             }
-                            is UiState.Error -> {
-                                Text(
-                                    text = resultadoRecuperacion.mensaje,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                            is UiState.Cargando -> {
-                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                            }
+                            Text(
+                                text = resultadoRecuperacion.texto,
+                                color = if (resultadoRecuperacion.esExito) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error
+                            )
                         }
                     }
                 }
@@ -137,8 +139,12 @@ fun LoginScreen(
                     onClick = {
                         onRecuperarClave(correoRecuperacion)
                     },
-                    enabled = resultadoRecuperacion !is UiState.Cargando
+                    enabled = !cargandoRecuperacion
                 ) {
+                    if (cargandoRecuperacion) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(4.dp))
+                    }
                     Text("Enviar")
                 }
             },
@@ -147,7 +153,8 @@ fun LoginScreen(
                     onClick = {
                         mostrarDialogo = false
                         onLimpiarRecuperacion()
-                    }
+                    },
+                    enabled = !cargandoRecuperacion
                 ) {
                     Text("Cancelar")
                 }
