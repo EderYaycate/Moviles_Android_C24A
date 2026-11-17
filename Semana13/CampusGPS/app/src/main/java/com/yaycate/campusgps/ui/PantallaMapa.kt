@@ -4,10 +4,10 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -62,8 +62,7 @@ fun PantallaMapa() {
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
                 onClick = { alPulsar() },
@@ -73,6 +72,15 @@ fun PantallaMapa() {
             }
             Spacer(Modifier.height(16.dp))
             Text(textoEstado(estado))
+            Spacer(Modifier.height(16.dp))
+            MapaUbicacion(
+                estado = estado,
+                lugares = emptyList(),
+                seleccionado = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            )
         }
     }
 }
