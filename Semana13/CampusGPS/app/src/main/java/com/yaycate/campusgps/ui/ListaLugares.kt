@@ -82,6 +82,20 @@ fun ListaLugares(
                             text = item.lugar.categoria,
                             style = MaterialTheme.typography.bodySmall
                         )
+                        if (esSeleccionado) {
+                            Text(
+                                text = "Último lugar visitado",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = AzulCampus
+                            )
+                        }
+                        if (esMasCercano) {
+                            Text(
+                                text = "Lugar más cercano",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = VerdeCercano
+                            )
+                        }
                     }
                 }
                 Text(
