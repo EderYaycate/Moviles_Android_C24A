@@ -45,6 +45,10 @@ class MapaViewModel(
         _estado.value = UbicacionUi.Error("Sin permiso de ubicación no puedo mostrar dónde estás")
     }
 
+    fun seleccionar(id: Int?) {
+        _seleccionado.value = id
+    }
+
     private fun actualizarDistancias(posicion: Posicion) {
         _lugares.value = _lugares.value
             .map { item ->
@@ -54,7 +58,6 @@ class MapaViewModel(
             .sortedBy { it.metros }
     }
 
-    // TODO Paso 6: fun seleccionar(id: Int?)
     // TODO Paso 7: val masCercano: StateFlow<Lugar?>
 
     private fun mensajeDe(e: Throwable): String = when (e) {

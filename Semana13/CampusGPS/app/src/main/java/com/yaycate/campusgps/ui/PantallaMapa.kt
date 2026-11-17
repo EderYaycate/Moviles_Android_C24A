@@ -11,15 +11,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -35,6 +39,7 @@ fun PantallaMapa() {
     val vm: MapaViewModel = viewModel(factory = CampusViewModelFactory(contexto))
     val estado by vm.estado.collectAsState()
     val lugares by vm.lugares.collectAsState()
+    val seleccionado by vm.seleccionado.collectAsState()
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -57,38 +62,58 @@ fun PantallaMapa() {
         }
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("CampusGPS") }) }) { padding ->
+    val mensajeError = (estado as? UbicacionUi.Error)?.mensaje
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("CampusGPS", color = Color.White) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = AzulCampus,
+                    titleContentColor = Color.White
+                )
+            )
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(
-                onClick = { alPulsar() },
-                enabled = estado !is UbicacionUi.Buscando
-            ) {
-                Text("Obtener mi ubicación")
-            }
-            Spacer(Modifier.height(16.dp))
-            Text(textoEstado(estado))
-            Spacer(Modifier.height(16.dp))
             MapaUbicacion(
                 estado = estado,
                 lugares = lugares,
-                seleccionado = null,
+                seleccionado = seleccionado,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(0.45f)
+            )
+            Spacer(Modifier.height(12.dp))
+            Button(
+                onClick = { alPulsar() },
+                enabled = estado !is UbicacionUi.Buscando,
+                colors = ButtonDefaults.buttonColors(containerColor = AzulCampus)
+            ) {
+                Text("Obtener mi ubicación")
+            }
+            if (mensajeError != null) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = mensajeError,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            ListaLugares(
+                lugares = lugares,
+                seleccionado = seleccionado,
+                onSeleccionar = { vm.seleccionar(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.55f)
             )
         }
     }
-}
-
-private fun textoEstado(estado: UbicacionUi): String = when (estado) {
-    UbicacionUi.Inicial -> "Pulsa el botón para empezar"
-    UbicacionUi.Buscando -> "Buscando tu ubicación..."
-    is UbicacionUi.Lista -> "Ubicación: ${estado.posicion.latitud}, ${estado.posicion.longitud}"
-    is UbicacionUi.Error -> estado.mensaje
 }
