@@ -64,6 +64,7 @@ fun PantallaMapa(vm: MapaViewModel) {
     val masCercanoId by vm.masCercanoId.collectAsState()
     val categoriaSeleccionada by vm.categoriaSeleccionada.collectAsState()
     val modoOscuro by vm.modoOscuro.collectAsState()
+    val acento = acentoTema()
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -167,7 +168,9 @@ fun PantallaMapa(vm: MapaViewModel) {
                     enabled = estado !is UbicacionUi.Buscando,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent
+                        contentColor = Color.White,
+                        disabledContainerColor = Color.Transparent,
+                        disabledContentColor = Color.White.copy(alpha = 0.6f)
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -178,8 +181,8 @@ fun PantallaMapa(vm: MapaViewModel) {
             OutlinedButton(
                 onClick = { vm.irAlMasCercano() },
                 enabled = masCercano != null,
-                border = BorderStroke(1.dp, AzulCampus),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = AzulCampus),
+                border = BorderStroke(1.dp, acento),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = acento),
                 modifier = Modifier.fillMaxWidth(0.8f)
             ) {
                 Text("Ir al más cercano")

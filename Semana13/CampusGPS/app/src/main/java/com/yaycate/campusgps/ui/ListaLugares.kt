@@ -37,6 +37,8 @@ fun ListaLugares(
     modifier: Modifier = Modifier
 ) {
     val forma = RoundedCornerShape(12.dp)
+    val acento = acentoTema()
+    val fondoSeleccion = fondoSeleccionTema()
 
     LazyColumn(
         modifier = modifier,
@@ -50,12 +52,12 @@ fun ListaLugares(
                     .fillMaxWidth()
                     .border(
                         width = if (esSeleccionado) 2.dp else 1.dp,
-                        color = if (esSeleccionado) AzulCampus
+                        color = if (esSeleccionado) acento
                         else MaterialTheme.colorScheme.outlineVariant,
                         shape = forma
                     )
                     .background(
-                        color = if (esSeleccionado) AzulSuave else Color.Transparent,
+                        color = if (esSeleccionado) fondoSeleccion else Color.Transparent,
                         shape = forma
                     )
                     .clickable { onSeleccionar(item.lugar.id) }
@@ -68,7 +70,7 @@ fun ListaLugares(
                         modifier = Modifier
                             .size(8.dp)
                             .background(
-                                if (esMasCercano) VerdeCercano else AzulCampus,
+                                if (esMasCercano) VerdeCercano else acento,
                                 CircleShape
                             )
                     )
@@ -86,7 +88,7 @@ fun ListaLugares(
                             Text(
                                 text = "Último lugar visitado",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = AzulCampus
+                                color = acento
                             )
                         }
                         if (esMasCercano) {
@@ -101,7 +103,7 @@ fun ListaLugares(
                 Text(
                     text = formatearDistancia(item.metros),
                     style = MaterialTheme.typography.titleSmall,
-                    color = AzulCampus
+                    color = acento
                 )
             }
         }
