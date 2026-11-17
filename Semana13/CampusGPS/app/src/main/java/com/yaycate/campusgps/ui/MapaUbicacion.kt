@@ -2,6 +2,7 @@ package com.yaycate.campusgps.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -14,7 +15,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
+import com.google.maps.android.compose.rememberUpdatedMarkerState
 import com.yaycate.campusgps.R
 import com.yaycate.campusgps.model.LugarConDistancia
 import com.yaycate.campusgps.model.UbicacionUi
@@ -65,13 +66,14 @@ fun MapaUbicacion(
         properties = mapProperties
     ) {
         if (estado is UbicacionUi.Lista) {
-            Marker(
-                state = rememberMarkerState(
-                    key = "mi_ubicacion",
-                    position = LatLng(estado.posicion.latitud, estado.posicion.longitud)
-                ),
-                title = "Mi ubicación"
-            )
+            key("mi_ubicacion") {
+                Marker(
+                    state = rememberUpdatedMarkerState(
+                        position = LatLng(estado.posicion.latitud, estado.posicion.longitud)
+                    ),
+                    title = "Mi ubicación"
+                )
+            }
         }
 
         lugares.forEach { item ->
@@ -80,14 +82,15 @@ fun MapaUbicacion(
                 item.lugar.id == seleccionado -> BitmapDescriptorFactory.HUE_ORANGE
                 else -> BitmapDescriptorFactory.HUE_AZURE
             }
-            Marker(
-                state = rememberMarkerState(
-                    key = "lugar_${item.lugar.id}",
-                    position = LatLng(item.lugar.latitud, item.lugar.longitud)
-                ),
-                title = item.lugar.nombre,
-                icon = BitmapDescriptorFactory.defaultMarker(color)
-            )
+            key(item.lugar.id) {
+                Marker(
+                    state = rememberUpdatedMarkerState(
+                        position = LatLng(item.lugar.latitud, item.lugar.longitud)
+                    ),
+                    title = item.lugar.nombre,
+                    icon = BitmapDescriptorFactory.defaultMarker(color)
+                )
+            }
         }
     }
 }
