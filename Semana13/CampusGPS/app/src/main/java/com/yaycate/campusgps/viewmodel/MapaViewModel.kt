@@ -6,6 +6,7 @@ import com.yaycate.campusgps.data.GpsApagadoException
 import com.yaycate.campusgps.data.LugaresRepository
 import com.yaycate.campusgps.data.SinPlayServicesException
 import com.yaycate.campusgps.data.UbicacionRepository
+import com.yaycate.campusgps.data.UltimoLugarRepository
 import com.yaycate.campusgps.model.LugarConDistancia
 import com.yaycate.campusgps.model.Posicion
 import com.yaycate.campusgps.model.TipoError
@@ -16,14 +17,25 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class MapaViewModel(
     private val ubicacionRepo: UbicacionRepository,
-    private val lugaresRepo: LugaresRepository
+    private val lugaresRepo: LugaresRepository,
+    private val ultimoLugarRepo: UltimoLugarRepository
 ) : ViewModel() {
+
+    init {
+        viewModelScope.launch {
+            val ultimoId = ultimoLugarRepo.ultimoLugar.firstOrNull()
+            if (ultimoId != null) {
+                _seleccionado.value = ultimoId
+            }
+        }
+    }
 
     private val _estado = MutableStateFlow<UbicacionUi>(UbicacionUi.Inicial)
     val estado: StateFlow<UbicacionUi> = _estado.asStateFlow()
@@ -80,6 +92,11 @@ class MapaViewModel(
 
     fun seleccionar(id: Int?) {
         _seleccionado.value = id
+        if (id != null) {
+            viewModelScope.launch {
+                ultimoLugarRepo.guardarUltimo(id)
+            }
+        }
     }
 
     fun seleccionarCategoria(categoria: String) {
@@ -87,7 +104,7 @@ class MapaViewModel(
     }
 
     fun irAlMasCercano() {
-        _seleccionado.value = masCercano.value?.lugar?.id
+        seleccionar(masCercano.value?.lugar?.id)
     }
 
     private fun actualizarDistancias(posicion: Posicion) {
