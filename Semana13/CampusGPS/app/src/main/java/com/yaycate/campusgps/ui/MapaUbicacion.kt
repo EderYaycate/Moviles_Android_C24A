@@ -1,16 +1,22 @@
 package com.yaycate.campusgps.ui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
+import com.yaycate.campusgps.R
 import com.yaycate.campusgps.model.LugarConDistancia
 import com.yaycate.campusgps.model.UbicacionUi
 
@@ -22,6 +28,19 @@ fun MapaUbicacion(
     masCercanoId: Int?,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val esOscuro = isSystemInDarkTheme()
+
+    val mapProperties = remember(esOscuro) {
+        MapProperties(
+            mapStyleOptions = if (esOscuro) {
+                MapStyleOptions.loadRawResourceStyle(context, R.raw.mapa_oscuro)
+            } else {
+                null
+            }
+        )
+    }
+
     val camara = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(-12.0445, -76.9540), 17f)
     }
@@ -43,11 +62,13 @@ fun MapaUbicacion(
 
     GoogleMap(
         modifier = modifier,
-        cameraPositionState = camara
+        cameraPositionState = camara,
+        properties = mapProperties
     ) {
         if (estado is UbicacionUi.Lista) {
             Marker(
-                state = MarkerState(
+                state = rememberMarkerState(
+                    key = "mi_ubicacion",
                     position = LatLng(estado.posicion.latitud, estado.posicion.longitud)
                 ),
                 title = "Mi ubicación"
@@ -61,7 +82,8 @@ fun MapaUbicacion(
                 else -> BitmapDescriptorFactory.HUE_AZURE
             }
             Marker(
-                state = MarkerState(
+                state = rememberMarkerState(
+                    key = "lugar_${item.lugar.id}",
                     position = LatLng(item.lugar.latitud, item.lugar.longitud)
                 ),
                 title = item.lugar.nombre,
