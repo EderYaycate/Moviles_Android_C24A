@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,15 +28,23 @@ class MapaViewModel(
     private val _estado = MutableStateFlow<UbicacionUi>(UbicacionUi.Inicial)
     val estado: StateFlow<UbicacionUi> = _estado.asStateFlow()
 
-    private val _lugares = MutableStateFlow(
+    private val _todosLosLugares = MutableStateFlow(
         lugaresRepo.obtenerLugares().map { LugarConDistancia(it, null) }
     )
-    val lugares: StateFlow<List<LugarConDistancia>> = _lugares.asStateFlow()
+
+    private val _categoriaSeleccionada = MutableStateFlow<String?>(null)
+    val categoriaSeleccionada: StateFlow<String?> = _categoriaSeleccionada.asStateFlow()
+
+    val categorias: List<String> = listOf("Estudio", "Comida", "Eventos", "Servicios")
+
+    val lugares: StateFlow<List<LugarConDistancia>> = combine(_todosLosLugares, _categoriaSeleccionada) { lista, cat ->
+        if (cat == null) lista else lista.filter { it.lugar.categoria == cat }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, _todosLosLugares.value)
 
     private val _seleccionado = MutableStateFlow<Int?>(null)
     val seleccionado: StateFlow<Int?> = _seleccionado.asStateFlow()
 
-    val masCercano: StateFlow<LugarConDistancia?> = _lugares
+    val masCercano: StateFlow<LugarConDistancia?> = lugares
         .map { lista -> lista.firstOrNull { it.metros != null } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -73,12 +82,16 @@ class MapaViewModel(
         _seleccionado.value = id
     }
 
+    fun seleccionarCategoria(categoria: String) {
+        _categoriaSeleccionada.value = if (_categoriaSeleccionada.value == categoria) null else categoria
+    }
+
     fun irAlMasCercano() {
         _seleccionado.value = masCercano.value?.lugar?.id
     }
 
     private fun actualizarDistancias(posicion: Posicion) {
-        _lugares.value = _lugares.value
+        _todosLosLugares.value = _todosLosLugares.value
             .map { item ->
                 val destino = Posicion(item.lugar.latitud, item.lugar.longitud)
                 item.copy(metros = distanciaMetros(posicion, destino))
