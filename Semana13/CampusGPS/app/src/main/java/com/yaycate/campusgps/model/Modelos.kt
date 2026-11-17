@@ -13,9 +13,17 @@ data class Lugar(
 // metros = null mientras todavía no se conoce la ubicación del usuario
 data class LugarConDistancia(val lugar: Lugar, val metros: Float?)
 
+enum class TipoError {
+    PERMISO_DENEGADO,
+    PERMISO_PERMANENTE,
+    GPS_APAGADO,
+    SIN_PLAY_SERVICES,
+    OTRO
+}
+
 sealed interface UbicacionUi {
     data object Inicial : UbicacionUi
     data object Buscando : UbicacionUi
     data class Lista(val posicion: Posicion) : UbicacionUi
-    data class Error(val mensaje: String) : UbicacionUi
+    data class Error(val tipo: TipoError, val mensaje: String) : UbicacionUi
 }

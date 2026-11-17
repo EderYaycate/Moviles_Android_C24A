@@ -1,11 +1,16 @@
 package com.yaycate.campusgps.ui
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +39,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.yaycate.campusgps.model.TipoError
 import com.yaycate.campusgps.model.UbicacionUi
 import com.yaycate.campusgps.util.formatearDistancia
 import com.yaycate.campusgps.viewmodel.CampusViewModelFactory
@@ -55,7 +61,15 @@ fun PantallaMapa() {
     ) { resultados ->
         val concedido = resultados[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
                 resultados[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        if (concedido) vm.buscar() else vm.permisoDenegado()
+        if (concedido) {
+            vm.buscar()
+        } else {
+            val activity = contexto as? Activity
+            val puedeVolverAPedir = activity?.shouldShowRequestPermissionRationale(
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) ?: true
+            vm.permisoDenegado(permanente = !puedeVolverAPedir)
+        }
     }
 
     fun alPulsar() {
@@ -71,7 +85,19 @@ fun PantallaMapa() {
         }
     }
 
-    val mensajeError = (estado as? UbicacionUi.Error)?.mensaje
+    fun abrirAjustes(tipo: TipoError) {
+        val intent = if (tipo == TipoError.GPS_APAGADO) {
+            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+        } else {
+            Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", contexto.packageName, null)
+            )
+        }
+        contexto.startActivity(intent)
+    }
+
+    val error = estado as? UbicacionUi.Error
 
     Scaffold(
         topBar = {
@@ -131,11 +157,12 @@ fun PantallaMapa() {
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-            if (mensajeError != null) {
+            if (error != null) {
                 Spacer(Modifier.height(8.dp))
-                Text(
-                    text = mensajeError,
-                    color = MaterialTheme.colorScheme.error
+                MensajeError(
+                    error = error,
+                    onReintentar = { alPulsar() },
+                    onAbrirAjustes = { abrirAjustes(error.tipo) }
                 )
             }
             Spacer(Modifier.height(12.dp))

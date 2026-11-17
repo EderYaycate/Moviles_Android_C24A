@@ -2,10 +2,13 @@ package com.yaycate.campusgps.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yaycate.campusgps.data.GpsApagadoException
 import com.yaycate.campusgps.data.LugaresRepository
+import com.yaycate.campusgps.data.SinPlayServicesException
 import com.yaycate.campusgps.data.UbicacionRepository
 import com.yaycate.campusgps.model.LugarConDistancia
 import com.yaycate.campusgps.model.Posicion
+import com.yaycate.campusgps.model.TipoError
 import com.yaycate.campusgps.model.UbicacionUi
 import com.yaycate.campusgps.util.distanciaMetros
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,12 +51,22 @@ class MapaViewModel(
                     _estado.value = UbicacionUi.Lista(it)
                     actualizarDistancias(it)
                 }
-                .onFailure { _estado.value = UbicacionUi.Error(mensajeDe(it)) }
+                .onFailure { _estado.value = errorDe(it) }
         }
     }
 
-    fun permisoDenegado() {
-        _estado.value = UbicacionUi.Error("Sin permiso de ubicación no puedo mostrar dónde estás")
+    fun permisoDenegado(permanente: Boolean = false) {
+        _estado.value = if (permanente) {
+            UbicacionUi.Error(
+                TipoError.PERMISO_PERMANENTE,
+                "El permiso de ubicación está bloqueado. Actívalo desde los ajustes de la app"
+            )
+        } else {
+            UbicacionUi.Error(
+                TipoError.PERMISO_DENEGADO,
+                "Falta el permiso de ubicación para mostrar dónde estás"
+            )
+        }
     }
 
     fun seleccionar(id: Int?) {
@@ -73,8 +86,22 @@ class MapaViewModel(
             .sortedBy { it.metros }
     }
 
-    private fun mensajeDe(e: Throwable): String = when (e) {
-        is SecurityException -> "Falta el permiso de ubicación"
-        else -> e.message ?: "No se pudo obtener la ubicación"
+    private fun errorDe(e: Throwable): UbicacionUi.Error = when (e) {
+        is SecurityException -> UbicacionUi.Error(
+            TipoError.PERMISO_DENEGADO,
+            "Falta el permiso de ubicación"
+        )
+        is GpsApagadoException -> UbicacionUi.Error(
+            TipoError.GPS_APAGADO,
+            "El GPS está apagado. Actívalo para ubicarte"
+        )
+        is SinPlayServicesException -> UbicacionUi.Error(
+            TipoError.SIN_PLAY_SERVICES,
+            "Google Play Services no está disponible en este dispositivo"
+        )
+        else -> UbicacionUi.Error(
+            TipoError.OTRO,
+            e.message ?: "No se pudo obtener la ubicación"
+        )
     }
 }
