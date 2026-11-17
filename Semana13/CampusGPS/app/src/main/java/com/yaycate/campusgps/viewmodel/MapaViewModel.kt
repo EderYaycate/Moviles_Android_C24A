@@ -9,8 +9,11 @@ import com.yaycate.campusgps.model.Posicion
 import com.yaycate.campusgps.model.UbicacionUi
 import com.yaycate.campusgps.util.distanciaMetros
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class MapaViewModel(
@@ -28,6 +31,14 @@ class MapaViewModel(
 
     private val _seleccionado = MutableStateFlow<Int?>(null)
     val seleccionado: StateFlow<Int?> = _seleccionado.asStateFlow()
+
+    val masCercano: StateFlow<LugarConDistancia?> = _lugares
+        .map { lista -> lista.firstOrNull { it.metros != null } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val masCercanoId: StateFlow<Int?> = masCercano
+        .map { it?.lugar?.id }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun buscar() {
         _estado.value = UbicacionUi.Buscando
@@ -49,6 +60,10 @@ class MapaViewModel(
         _seleccionado.value = id
     }
 
+    fun irAlMasCercano() {
+        _seleccionado.value = masCercano.value?.lugar?.id
+    }
+
     private fun actualizarDistancias(posicion: Posicion) {
         _lugares.value = _lugares.value
             .map { item ->
@@ -57,8 +72,6 @@ class MapaViewModel(
             }
             .sortedBy { it.metros }
     }
-
-    // TODO Paso 7: val masCercano: StateFlow<Lugar?>
 
     private fun mensajeDe(e: Throwable): String = when (e) {
         is SecurityException -> "Falta el permiso de ubicación"

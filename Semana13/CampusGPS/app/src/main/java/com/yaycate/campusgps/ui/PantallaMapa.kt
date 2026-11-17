@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -25,10 +27,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yaycate.campusgps.model.UbicacionUi
+import com.yaycate.campusgps.util.formatearDistancia
 import com.yaycate.campusgps.viewmodel.CampusViewModelFactory
 import com.yaycate.campusgps.viewmodel.MapaViewModel
 
@@ -40,6 +47,8 @@ fun PantallaMapa() {
     val estado by vm.estado.collectAsState()
     val lugares by vm.lugares.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
+    val masCercano by vm.masCercano.collectAsState()
+    val masCercanoId by vm.masCercanoId.collectAsState()
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -86,6 +95,7 @@ fun PantallaMapa() {
                 estado = estado,
                 lugares = lugares,
                 seleccionado = seleccionado,
+                masCercanoId = masCercanoId,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(0.45f)
@@ -94,9 +104,32 @@ fun PantallaMapa() {
             Button(
                 onClick = { alPulsar() },
                 enabled = estado !is UbicacionUi.Buscando,
-                colors = ButtonDefaults.buttonColors(containerColor = AzulCampus)
+                colors = ButtonDefaults.buttonColors(containerColor = AzulCampus),
+                modifier = Modifier.fillMaxWidth(0.8f)
             ) {
                 Text("Obtener mi ubicación")
+            }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = { vm.irAlMasCercano() },
+                enabled = masCercano != null,
+                border = BorderStroke(1.dp, AzulCampus),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = AzulCampus),
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) {
+                Text("Ir al más cercano")
+            }
+            masCercano?.let { cercano ->
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("Más cercano: ")
+                        }
+                        append("${cercano.lugar.nombre} (${formatearDistancia(cercano.metros)})")
+                    },
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
             if (mensajeError != null) {
                 Spacer(Modifier.height(8.dp))
@@ -109,6 +142,7 @@ fun PantallaMapa() {
             ListaLugares(
                 lugares = lugares,
                 seleccionado = seleccionado,
+                masCercanoId = masCercanoId,
                 onSeleccionar = { vm.seleccionar(it) },
                 modifier = Modifier
                     .fillMaxWidth()

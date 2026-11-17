@@ -26,10 +26,13 @@ import androidx.compose.ui.unit.dp
 import com.yaycate.campusgps.model.LugarConDistancia
 import com.yaycate.campusgps.util.formatearDistancia
 
+private val VerdeCercano = Color(0xFF34A853)
+
 @Composable
 fun ListaLugares(
     lugares: List<LugarConDistancia>,
     seleccionado: Int?,
+    masCercanoId: Int?,
     onSeleccionar: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -41,6 +44,7 @@ fun ListaLugares(
     ) {
         items(lugares, key = { it.lugar.id }) { item ->
             val esSeleccionado = item.lugar.id == seleccionado
+            val esMasCercano = item.lugar.id == masCercanoId
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -63,7 +67,10 @@ fun ListaLugares(
                     Box(
                         modifier = Modifier
                             .size(8.dp)
-                            .background(AzulCampus, CircleShape)
+                            .background(
+                                if (esMasCercano) VerdeCercano else AzulCampus,
+                                CircleShape
+                            )
                     )
                     Spacer(Modifier.width(12.dp))
                     Column {
