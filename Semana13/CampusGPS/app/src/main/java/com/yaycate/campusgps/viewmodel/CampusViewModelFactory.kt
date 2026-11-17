@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.yaycate.campusgps.data.LugaresRepositoryLocal
+import com.yaycate.campusgps.data.TemaRepositoryDataStore
 import com.yaycate.campusgps.data.UbicacionRepositoryGoogle
 import com.yaycate.campusgps.data.UltimoLugarRepositoryDataStore
 
@@ -14,7 +15,8 @@ class CampusViewModelFactory(private val context: Context) : ViewModelProvider.F
         return MapaViewModel(
             ubicacionRepo = UbicacionRepositoryGoogle(appContext),
             lugaresRepo = LugaresRepositoryLocal(),
-            ultimoLugarRepo = UltimoLugarRepositoryDataStore(appContext)
+            ultimoLugarRepo = UltimoLugarRepositoryDataStore(appContext),
+            temaRepo = TemaRepositoryDataStore(appContext)
         ) as T
     }
 }

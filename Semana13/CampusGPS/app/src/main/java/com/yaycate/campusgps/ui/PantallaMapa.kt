@@ -13,11 +13,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -28,6 +30,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -45,24 +48,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yaycate.campusgps.model.TipoError
 import com.yaycate.campusgps.model.UbicacionUi
 import com.yaycate.campusgps.util.formatearDistancia
-import com.yaycate.campusgps.viewmodel.CampusViewModelFactory
 import com.yaycate.campusgps.viewmodel.MapaViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaMapa() {
+fun PantallaMapa(vm: MapaViewModel) {
     val contexto = LocalContext.current
-    val vm: MapaViewModel = viewModel(factory = CampusViewModelFactory(contexto))
     val estado by vm.estado.collectAsState()
     val lugares by vm.lugares.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
     val masCercano by vm.masCercano.collectAsState()
     val masCercanoId by vm.masCercanoId.collectAsState()
     val categoriaSeleccionada by vm.categoriaSeleccionada.collectAsState()
+    val modoOscuro by vm.modoOscuro.collectAsState()
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -112,6 +113,23 @@ fun PantallaMapa() {
             Box(modifier = Modifier.background(DegradadoAzul)) {
                 TopAppBar(
                     title = { Text("CampusGPS", color = Color.White) },
+                    actions = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text(
+                                text = if (modoOscuro) "Oscuro" else "Claro",
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Switch(
+                                checked = modoOscuro,
+                                onCheckedChange = { vm.cambiarModoOscuro(it) }
+                            )
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         titleContentColor = Color.White
@@ -132,6 +150,7 @@ fun PantallaMapa() {
                 lugares = lugares,
                 seleccionado = seleccionado,
                 masCercanoId = masCercanoId,
+                esOscuro = modoOscuro,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(0.45f)

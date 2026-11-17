@@ -1,6 +1,5 @@
 package com.yaycate.campusgps.ui
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -26,10 +25,10 @@ fun MapaUbicacion(
     lugares: List<LugarConDistancia>,
     seleccionado: Int?,
     masCercanoId: Int?,
+    esOscuro: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val esOscuro = isSystemInDarkTheme()
 
     val mapProperties = remember(esOscuro) {
         MapProperties(

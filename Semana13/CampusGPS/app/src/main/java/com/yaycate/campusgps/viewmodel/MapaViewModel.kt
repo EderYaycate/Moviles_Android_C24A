@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.yaycate.campusgps.data.GpsApagadoException
 import com.yaycate.campusgps.data.LugaresRepository
 import com.yaycate.campusgps.data.SinPlayServicesException
+import com.yaycate.campusgps.data.TemaRepository
 import com.yaycate.campusgps.data.UbicacionRepository
 import com.yaycate.campusgps.data.UltimoLugarRepository
 import com.yaycate.campusgps.model.LugarConDistancia
@@ -25,17 +26,9 @@ import kotlinx.coroutines.launch
 class MapaViewModel(
     private val ubicacionRepo: UbicacionRepository,
     private val lugaresRepo: LugaresRepository,
-    private val ultimoLugarRepo: UltimoLugarRepository
+    private val ultimoLugarRepo: UltimoLugarRepository,
+    private val temaRepo: TemaRepository
 ) : ViewModel() {
-
-    init {
-        viewModelScope.launch {
-            val ultimoId = ultimoLugarRepo.ultimoLugar.firstOrNull()
-            if (ultimoId != null) {
-                _seleccionado.value = ultimoId
-            }
-        }
-    }
 
     private val _estado = MutableStateFlow<UbicacionUi>(UbicacionUi.Inicial)
     val estado: StateFlow<UbicacionUi> = _estado.asStateFlow()
@@ -63,6 +56,18 @@ class MapaViewModel(
     val masCercanoId: StateFlow<Int?> = masCercano
         .map { it?.lugar?.id }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val modoOscuro: StateFlow<Boolean> = temaRepo.modoOscuro
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    init {
+        viewModelScope.launch {
+            val ultimoId = ultimoLugarRepo.ultimoLugar.firstOrNull()
+            if (ultimoId != null) {
+                _seleccionado.value = ultimoId
+            }
+        }
+    }
 
     fun buscar() {
         _estado.value = UbicacionUi.Buscando
@@ -105,6 +110,12 @@ class MapaViewModel(
 
     fun irAlMasCercano() {
         seleccionar(masCercano.value?.lugar?.id)
+    }
+
+    fun cambiarModoOscuro(oscuro: Boolean) {
+        viewModelScope.launch {
+            temaRepo.guardarModoOscuro(oscuro)
+        }
     }
 
     private fun actualizarDistancias(posicion: Posicion) {
