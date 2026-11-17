@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -21,13 +22,13 @@ fun MapaUbicacion(
     modifier: Modifier = Modifier
 ) {
     val camara = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(-12.0464, -77.0428), 12f)
+        position = CameraPosition.fromLatLngZoom(LatLng(-12.0445, -76.9540), 17f)
     }
 
     LaunchedEffect(estado) {
         if (estado is UbicacionUi.Lista) {
             val destino = LatLng(estado.posicion.latitud, estado.posicion.longitud)
-            camara.animate(CameraUpdateFactory.newLatLngZoom(destino, 16f))
+            camara.animate(CameraUpdateFactory.newLatLngZoom(destino, 17f))
         }
     }
 
@@ -41,6 +42,16 @@ fun MapaUbicacion(
                     position = LatLng(estado.posicion.latitud, estado.posicion.longitud)
                 ),
                 title = "Mi ubicación"
+            )
+        }
+
+        lugares.forEach { item ->
+            Marker(
+                state = MarkerState(
+                    position = LatLng(item.lugar.latitud, item.lugar.longitud)
+                ),
+                title = item.lugar.nombre,
+                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
             )
         }
     }

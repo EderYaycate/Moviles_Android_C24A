@@ -34,6 +34,7 @@ fun PantallaMapa() {
     val contexto = LocalContext.current
     val vm: MapaViewModel = viewModel(factory = CampusViewModelFactory(contexto))
     val estado by vm.estado.collectAsState()
+    val lugares by vm.lugares.collectAsState()
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -75,7 +76,7 @@ fun PantallaMapa() {
             Spacer(Modifier.height(16.dp))
             MapaUbicacion(
                 estado = estado,
-                lugares = emptyList(),
+                lugares = lugares,
                 seleccionado = null,
                 modifier = Modifier
                     .fillMaxWidth()
