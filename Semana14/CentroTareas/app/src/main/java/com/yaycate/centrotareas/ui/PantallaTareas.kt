@@ -50,6 +50,7 @@ fun PantallaTareas(vm: TareasViewModel) {
     val simularError by vm.simularError.collectAsState()
     val limiteMs by vm.limiteMs.collectAsState()
     val historial by vm.historial.collectAsState()
+    val comparacion by vm.comparacion.collectAsState()
     var toques by remember { mutableIntStateOf(0) }
     var textoHasta by remember { mutableStateOf("500000") }
 
@@ -198,6 +199,22 @@ fun PantallaTareas(vm: TareasViewModel) {
                                 Text("Reintentar")
                             }
                         }
+                    }
+                }
+            }
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Comparación de tiempos",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    val uno = comparacion.unaPorUna
+                    val alaVez = comparacion.aLaVez
+                    Text("Una por una: ${uno?.let { "$it ms" } ?: "sin datos"}")
+                    Text("A la vez: ${alaVez?.let { "$it ms" } ?: "sin datos"}")
+                    if (uno != null && alaVez != null) {
+                        Text("Diferencia: ${uno - alaVez} ms")
                     }
                 }
             }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yaycate.centrotareas.data.TareasRepository
 import com.yaycate.centrotareas.model.CargaUi
+import com.yaycate.centrotareas.model.ComparacionTiempos
 import com.yaycate.centrotareas.model.PrimosUi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -125,8 +126,18 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
         _simularError.value = valor
     }
 
+    // ----- Comparacion de tiempos (mejora 4) -----
+    private val _comparacion = MutableStateFlow(ComparacionTiempos())
+    val comparacion: StateFlow<ComparacionTiempos> = _comparacion.asStateFlow()
+
     private fun exito(modo: String, perfil: String, pedidos: Int, milisegundos: Long) {
         _carga.value = CargaUi.Exito(modo, perfil, pedidos, milisegundos)
+        val actual = _comparacion.value
+        _comparacion.value = if (modo == "Una por una") {
+            actual.copy(unaPorUna = milisegundos)
+        } else {
+            actual.copy(aLaVez = milisegundos)
+        }
         registrar("$modo: $milisegundos ms, $pedidos pedidos")
     }
 

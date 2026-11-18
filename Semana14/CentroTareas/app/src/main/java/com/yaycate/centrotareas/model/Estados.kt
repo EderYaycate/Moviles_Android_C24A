@@ -18,3 +18,4 @@ sealed interface CargaUi {
     ) : CargaUi
     data class Error(val mensaje: String) : CargaUi
 }
+data class ComparacionTiempos(val unaPorUna: Long? = null, val aLaVez: Long? = null)
