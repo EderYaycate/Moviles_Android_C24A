@@ -39,16 +39,6 @@ TareasRepository (interface) ---> TareasRepositoryLocal
 
 Pendiente de confirmar en el emulador. Se espera que al pulsar "Tarea larga (MAL)" el hilo principal quede bloqueado 4 segundos por `Thread.sleep(4000)`: el contador "Tócame" no suma y la pantalla no se redibuja. Por eso el texto "Trabajando..." no llega a verse: la pantalla solo se actualiza cuando termina la función y ya muestra "Terminó". Si la espera fuera de 10 segundos, Android mostraría el diálogo "La aplicación no responde" (ANR), porque el hilo principal no responde a tiempo.
 
-## Capturas
-
-Pendientes. Todavía no se han tomado desde el emulador:
-
-- [ ] Pantalla congelada o tarea con progreso
-- [ ] Tarea cancelada
-- [ ] Números primos
-- [ ] Una por una frente a A la vez
-- [ ] Error simulado con Reintentar
-
 ## Pruebas de aceptación
 
 | Prueba | Resultado esperado | OK |
