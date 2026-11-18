@@ -1,6 +1,7 @@
 package com.yaycate.centrotareas.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -21,6 +23,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -34,7 +39,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.yaycate.centrotareas.model.CargaUi
@@ -56,6 +63,7 @@ fun PantallaTareas(vm: TareasViewModel) {
     val comparacion by vm.comparacion.collectAsState()
     var toques by remember { mutableIntStateOf(0) }
     var textoHasta by remember { mutableStateOf("500000") }
+    var modoCarga by remember { mutableIntStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -78,9 +86,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Button(onClick = { toques++ }) {
-                Text("Tócame: $toques")
-            }
+            BotonPrincipal(texto = "Tócame: $toques", onClick = { toques++ })
 
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -90,12 +96,11 @@ fun PantallaTareas(vm: TareasViewModel) {
                         color = MaterialTheme.colorScheme.primary
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
+                        BotonPrincipal(
+                            texto = "Iniciar",
                             onClick = { vm.tareaLarga() },
                             enabled = !corriendo
-                        ) {
-                            Text("Iniciar")
-                        }
+                        )
                         OutlinedButton(
                             onClick = { vm.cancelar() },
                             enabled = corriendo
@@ -128,14 +133,13 @@ fun PantallaTareas(vm: TareasViewModel) {
                         modifier = Modifier.fillMaxWidth()
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
+                        BotonPrincipal(
+                            texto = "Contar",
                             onClick = {
                                 textoHasta.toIntOrNull()?.takeIf { it >= 2 }?.let { vm.contar(it) }
                             },
                             enabled = primos !is PrimosUi.Calculando
-                        ) {
-                            Text("Contar")
-                        }
+                        )
                         OutlinedButton(
                             onClick = { vm.cancelarPrimos() },
                             enabled = primos is PrimosUi.Calculando
@@ -178,20 +182,23 @@ fun PantallaTareas(vm: TareasViewModel) {
                             onCheckedChange = { vm.cambiarSimularError(it) }
                         )
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(
-                            onClick = { vm.cargarUnaPorUna() },
-                            enabled = carga !is CargaUi.Cargando
-                        ) {
-                            Text("Una por una")
-                        }
-                        Button(
-                            onClick = { vm.cargarALaVez() },
-                            enabled = carga !is CargaUi.Cargando
-                        ) {
-                            Text("A la vez")
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        listOf("Una por una", "A la vez").forEachIndexed { index, texto ->
+                            SegmentedButton(
+                                selected = modoCarga == index,
+                                onClick = { modoCarga = index },
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = 2),
+                                enabled = carga !is CargaUi.Cargando
+                            ) {
+                                Text(texto)
+                            }
                         }
                     }
+                    BotonPrincipal(
+                        texto = "Cargar",
+                        onClick = { if (modoCarga == 0) vm.cargarUnaPorUna() else vm.cargarALaVez() },
+                        enabled = carga !is CargaUi.Cargando
+                    )
                     when (val c = carga) {
                         CargaUi.Inicial -> Unit
                         CargaUi.Cargando -> CircularProgressIndicator()
@@ -200,9 +207,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                         )
                         is CargaUi.Error -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             RecuadroError(c.mensaje)
-                            Button(onClick = { vm.cargarALaVez() }) {
-                                Text("Reintentar")
-                            }
+                            BotonPrincipal(texto = "Reintentar", onClick = { vm.cargarALaVez() })
                         }
                     }
                 }
@@ -266,5 +271,24 @@ private fun RecuadroResultado(texto: String) {
             modifier = Modifier.padding(12.dp),
             color = Color(0xFF1B5E20)
         )
+    }
+}
+
+@Composable
+private fun BotonPrincipal(
+    texto: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true
+) {
+    val fondo = if (enabled) DegradadoAzul else SolidColor(Color.Gray)
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(fondo)
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = texto, color = Color.White, style = MaterialTheme.typography.labelLarge)
     }
 }
