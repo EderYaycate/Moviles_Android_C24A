@@ -40,21 +40,11 @@ TareasRepository (interface) ---> TareasRepositoryLocal
 Pendiente de confirmar en el emulador. Se espera que al pulsar "Tarea larga (MAL)" el hilo principal quede bloqueado 4 segundos por `Thread.sleep(4000)`: el contador "Tócame" no suma y la pantalla no se redibuja. Por eso el texto "Trabajando..." no llega a verse: la pantalla solo se actualiza cuando termina la función y ya muestra "Terminó". Si la espera fuera de 10 segundos, Android mostraría el diálogo "La aplicación no responde" (ANR), porque el hilo principal no responde a tiempo.
 
 ## Pruebas de aceptación
-
-| Prueba | Resultado esperado | OK |
-|---|---|---|
-| Tarea larga: tocar Tócame mientras trabaja | El contador sigue sumando | ☐ |
-| Logcat con filtro HILO | main antes y después; DefaultDispatcher-worker dentro | ☐ |
-| Iniciar la tarea con progreso | La barra avanza de 0 a 100 % en ≈ 4 s | ☐ |
-| Cancelar a mitad | La barra se detiene, dice Cancelado y se puede iniciar otra vez | ☐ |
-| Pulsar Iniciar dos veces seguidas | No se lanzan dos tareas (el botón está deshabilitado) | ☐ |
-| Primos hasta 1000 | Resultado 168 | ☐ |
-| Primos con N grande | La pantalla no se congela y Cancelar funciona | ☐ |
-| Una por una | ≈ 5 s y resultado correcto | ☐ |
-| A la vez | ≈ 3 s y resultado correcto | ☐ |
-| Error simulado + Reintentar | Recuadro rojo; al desactivar el interruptor y reintentar, éxito | ☐ |
-| Rotar la pantalla durante la tarea | La tarea continúa y el progreso no se reinicia | ☐ |
-| Revisar el código | git grep no encuentra GlobalScope, runBlocking ni Thread.sleep en el código final | ☐ |
+![img.png](img.png)
+![img_1.png](img_1.png)
+![img_2.png](img_2.png)
+![img_3.png](img_3.png)
+![img_4.png](img_4.png)
 
 ## Para pensar
 
