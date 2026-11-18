@@ -21,6 +21,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 private const val LIMITE_POR_DEFECTO_MS = 15_000L
+private const val REINTENTOS = 3
 
 class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
 
@@ -114,6 +115,22 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
         _simularError.value = valor
     }
 
+    // Reintento automatico (mejora 2): hasta REINTENTOS veces con espera creciente.
+    // Si todos fallan, el ultimo intento deja pasar el error.
+    private suspend fun <T> conReintentos(bloque: suspend () -> T): T {
+        var espera = 200L
+        repeat(REINTENTOS) {
+            try {
+                return bloque()
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                delay(espera)
+                espera *= 2
+            }
+        }
+        return bloque()
+    }
+
     fun cargarUnaPorUna() {
         if (_carga.value == CargaUi.Cargando) return
         viewModelScope.launch {
@@ -122,7 +139,7 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
             try {
                 withTimeout(_limiteMs.value) {
                     val perfil = repo.cargarPerfil()
-                    val pedidos = repo.cargarPedidos(_simularError.value)
+                    val pedidos = conReintentos { repo.cargarPedidos(_simularError.value) }
                     _carga.value = CargaUi.Exito(
                         modo = "Una por una",
                         perfil = perfil,
@@ -148,7 +165,7 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
                 withTimeout(_limiteMs.value) {
                     val (perfil, pedidos) = coroutineScope {
                         val a = async { repo.cargarPerfil() }
-                        val b = async { repo.cargarPedidos(_simularError.value) }
+                        val b = async { conReintentos { repo.cargarPedidos(_simularError.value) } }
                         Pair(a.await(), b.await())
                     }
                     _carga.value = CargaUi.Exito(
