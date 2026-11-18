@@ -12,7 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -88,7 +89,7 @@ fun PantallaTareas(vm: TareasViewModel) {
         ) {
             BotonPrincipal(texto = "Tócame: $toques", onClick = { toques++ })
 
-            Card(modifier = Modifier.fillMaxWidth()) {
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "Tarea con progreso",
@@ -117,7 +118,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                 }
             }
 
-            Card(modifier = Modifier.fillMaxWidth()) {
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = "Contar números primos",
@@ -158,7 +159,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                 }
             }
 
-            Card(modifier = Modifier.fillMaxWidth()) {
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Dos cargas",
@@ -212,7 +213,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                     }
                 }
             }
-            Card(modifier = Modifier.fillMaxWidth()) {
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = "Comparación de tiempos",
@@ -228,7 +229,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                     }
                 }
             }
-            Card(modifier = Modifier.fillMaxWidth()) {
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = "Historial de resultados",
@@ -238,7 +239,9 @@ fun PantallaTareas(vm: TareasViewModel) {
                     if (historial.isEmpty()) {
                         Text("Sin resultados todavía")
                     } else {
-                        historial.forEach { Text(it) }
+                        historial.forEach { entrada ->
+                            ListItem(headlineContent = { Text(entrada) })
+                        }
                     }
                 }
             }
