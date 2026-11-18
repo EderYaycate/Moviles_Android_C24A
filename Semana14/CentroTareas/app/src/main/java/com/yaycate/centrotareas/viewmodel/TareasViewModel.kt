@@ -9,6 +9,7 @@ import com.yaycate.centrotareas.model.PrimosUi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -17,8 +18,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+
+private const val LIMITE_POR_DEFECTO_MS = 15_000L
 
 class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
+
+    // ----- Tiempo máximo (mejora 1) -----
+    private val _limiteMs = MutableStateFlow(LIMITE_POR_DEFECTO_MS)
+    val limiteMs: StateFlow<Long> = _limiteMs.asStateFlow()
+
+    fun cambiarLimite(ms: Long) {
+        _limiteMs.value = ms
+    }
 
     // ----- Tarea con progreso (pasos 1 a 4) -----
     private val _mensaje = MutableStateFlow("Listo")
@@ -40,15 +52,19 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
                 _progreso.value = 0f
                 _mensaje.value = "Trabajando..."
                 Log.d("HILO", "Antes: ${Thread.currentThread().name}")
-                withContext(Dispatchers.Default) {
-                    Log.d("HILO", "Dentro: ${Thread.currentThread().name}")
-                    for (i in 1..100) {
-                        delay(40)
-                        _progreso.value = i / 100f
+                withTimeout(_limiteMs.value) {
+                    withContext(Dispatchers.Default) {
+                        Log.d("HILO", "Dentro: ${Thread.currentThread().name}")
+                        for (i in 1..100) {
+                            delay(40)
+                            _progreso.value = i / 100f
+                        }
                     }
                 }
                 Log.d("HILO", "Despues: ${Thread.currentThread().name}")
                 _mensaje.value = "Terminó"
+            } catch (e: TimeoutCancellationException) {
+                _mensaje.value = "Tardó demasiado"
             } finally {
                 _corriendo.value = false
             }
@@ -104,14 +120,18 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
             _carga.value = CargaUi.Cargando
             val inicio = System.currentTimeMillis()
             try {
-                val perfil = repo.cargarPerfil()
-                val pedidos = repo.cargarPedidos(_simularError.value)
-                _carga.value = CargaUi.Exito(
-                    modo = "Una por una",
-                    perfil = perfil,
-                    pedidos = pedidos.size,
-                    milisegundos = System.currentTimeMillis() - inicio
-                )
+                withTimeout(_limiteMs.value) {
+                    val perfil = repo.cargarPerfil()
+                    val pedidos = repo.cargarPedidos(_simularError.value)
+                    _carga.value = CargaUi.Exito(
+                        modo = "Una por una",
+                        perfil = perfil,
+                        pedidos = pedidos.size,
+                        milisegundos = System.currentTimeMillis() - inicio
+                    )
+                }
+            } catch (e: TimeoutCancellationException) {
+                _carga.value = CargaUi.Error("Tardó demasiado")
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 _carga.value = CargaUi.Error("No se pudo cargar: ${e.message}")
@@ -125,17 +145,21 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
             _carga.value = CargaUi.Cargando
             val inicio = System.currentTimeMillis()
             try {
-                val (perfil, pedidos) = coroutineScope {
-                    val a = async { repo.cargarPerfil() }
-                    val b = async { repo.cargarPedidos(_simularError.value) }
-                    Pair(a.await(), b.await())
+                withTimeout(_limiteMs.value) {
+                    val (perfil, pedidos) = coroutineScope {
+                        val a = async { repo.cargarPerfil() }
+                        val b = async { repo.cargarPedidos(_simularError.value) }
+                        Pair(a.await(), b.await())
+                    }
+                    _carga.value = CargaUi.Exito(
+                        modo = "A la vez",
+                        perfil = perfil,
+                        pedidos = pedidos.size,
+                        milisegundos = System.currentTimeMillis() - inicio
+                    )
                 }
-                _carga.value = CargaUi.Exito(
-                    modo = "A la vez",
-                    perfil = perfil,
-                    pedidos = pedidos.size,
-                    milisegundos = System.currentTimeMillis() - inicio
-                )
+            } catch (e: TimeoutCancellationException) {
+                _carga.value = CargaUi.Error("Tardó demasiado")
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 _carga.value = CargaUi.Error("No se pudo cargar: ${e.message}")

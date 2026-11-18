@@ -13,6 +13,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -47,6 +48,7 @@ fun PantallaTareas(vm: TareasViewModel) {
     val primos by vm.primos.collectAsState()
     val carga by vm.carga.collectAsState()
     val simularError by vm.simularError.collectAsState()
+    val limiteMs by vm.limiteMs.collectAsState()
     var toques by remember { mutableIntStateOf(0) }
     var textoHasta by remember { mutableStateOf("500000") }
 
@@ -152,6 +154,16 @@ fun PantallaTareas(vm: TareasViewModel) {
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
+                    Text("Tiempo máximo")
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(2000L, 5000L, 15000L).forEach { ms ->
+                            FilterChip(
+                                selected = limiteMs == ms,
+                                onClick = { vm.cambiarLimite(ms) },
+                                label = { Text("${ms / 1000} s") }
+                            )
+                        }
+                    }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Simular error")
                         Switch(
