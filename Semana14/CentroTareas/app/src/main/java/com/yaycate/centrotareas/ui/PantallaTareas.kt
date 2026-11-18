@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.yaycate.centrotareas.model.CargaUi
 import com.yaycate.centrotareas.model.PrimosUi
 import com.yaycate.centrotareas.viewmodel.TareasViewModel
 
@@ -39,6 +41,7 @@ fun PantallaTareas(vm: TareasViewModel) {
     val progreso by vm.progreso.collectAsState()
     val corriendo by vm.corriendo.collectAsState()
     val primos by vm.primos.collectAsState()
+    val carga by vm.carga.collectAsState()
     var toques by remember { mutableIntStateOf(0) }
     var textoHasta by remember { mutableStateOf("500000") }
 
@@ -143,10 +146,44 @@ fun PantallaTareas(vm: TareasViewModel) {
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    // Pasos 6 y 7 pendientes
-                }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(
+                            onClick = { vm.cargarUnaPorUna() },
+                            enabled = carga !is CargaUi.Cargando
+                        ) {
+                            Text("Una por una")
+                        }
+                        Button(
+                            onClick = { vm.cargarALaVez() },
+                            enabled = carga !is CargaUi.Cargando
+                        ) {
+                            Text("A la vez")
+                        }
+                    }
+                    when (val c = carga) {
+                        CargaUi.Inicial -> Unit
+                        CargaUi.Cargando -> CircularProgressIndicator()
+                        is CargaUi.Exito -> RecuadroResultado(
+                            "Modo: ${c.modo}\nPerfil: ${c.perfil}\nPedidos: ${c.pedidos}\nTiempo: ${c.milisegundos} ms"
+                        )
+                        is CargaUi.Error -> RecuadroError(c.mensaje)
+                    }                }
             }
         }
+    }
+}
+
+@Composable
+private fun RecuadroError(texto: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+    ) {
+        Text(
+            text = texto,
+            modifier = Modifier.padding(12.dp),
+            color = MaterialTheme.colorScheme.onErrorContainer
+        )
     }
 }
 
