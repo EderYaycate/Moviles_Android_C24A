@@ -33,6 +33,14 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
         _limiteMs.value = ms
     }
 
+    // ----- Historial de resultados (mejora 3): ultimos 5, en memoria -----
+    private val _historial = MutableStateFlow<List<String>>(emptyList())
+    val historial: StateFlow<List<String>> = _historial.asStateFlow()
+
+    private fun registrar(texto: String) {
+        _historial.value = (listOf(texto) + _historial.value).take(5)
+    }
+
     // ----- Tarea con progreso (pasos 1 a 4) -----
     private val _mensaje = MutableStateFlow("Listo")
     val mensaje: StateFlow<String> = _mensaje.asStateFlow()
@@ -91,7 +99,9 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
             val inicio = System.currentTimeMillis()
             try {
                 val cantidad = repo.contarPrimos(hasta)
-                _primos.value = PrimosUi.Listo(cantidad, System.currentTimeMillis() - inicio)
+                val ms = System.currentTimeMillis() - inicio
+                _primos.value = PrimosUi.Listo(cantidad, ms)
+                registrar("Primos hasta $hasta: $cantidad en $ms ms")
             } catch (e: CancellationException) {
                 _primos.value = PrimosUi.Cancelado
                 throw e
@@ -113,6 +123,11 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
 
     fun cambiarSimularError(valor: Boolean) {
         _simularError.value = valor
+    }
+
+    private fun exito(modo: String, perfil: String, pedidos: Int, milisegundos: Long) {
+        _carga.value = CargaUi.Exito(modo, perfil, pedidos, milisegundos)
+        registrar("$modo: $milisegundos ms, $pedidos pedidos")
     }
 
     // Reintento automatico (mejora 2): hasta REINTENTOS veces con espera creciente.
@@ -140,7 +155,7 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
                 withTimeout(_limiteMs.value) {
                     val perfil = repo.cargarPerfil()
                     val pedidos = conReintentos { repo.cargarPedidos(_simularError.value) }
-                    _carga.value = CargaUi.Exito(
+                    exito(
                         modo = "Una por una",
                         perfil = perfil,
                         pedidos = pedidos.size,
@@ -168,7 +183,7 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
                         val b = async { conReintentos { repo.cargarPedidos(_simularError.value) } }
                         Pair(a.await(), b.await())
                     }
-                    _carga.value = CargaUi.Exito(
+                    exito(
                         modo = "A la vez",
                         perfil = perfil,
                         pedidos = pedidos.size,

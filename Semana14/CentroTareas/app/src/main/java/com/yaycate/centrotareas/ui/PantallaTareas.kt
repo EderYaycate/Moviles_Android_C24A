@@ -49,6 +49,7 @@ fun PantallaTareas(vm: TareasViewModel) {
     val carga by vm.carga.collectAsState()
     val simularError by vm.simularError.collectAsState()
     val limiteMs by vm.limiteMs.collectAsState()
+    val historial by vm.historial.collectAsState()
     var toques by remember { mutableIntStateOf(0) }
     var textoHasta by remember { mutableStateOf("500000") }
 
@@ -197,6 +198,20 @@ fun PantallaTareas(vm: TareasViewModel) {
                                 Text("Reintentar")
                             }
                         }
+                    }
+                }
+            }
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Historial de resultados",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    if (historial.isEmpty()) {
+                        Text("Sin resultados todavía")
+                    } else {
+                        historial.forEach { Text(it) }
                     }
                 }
             }
