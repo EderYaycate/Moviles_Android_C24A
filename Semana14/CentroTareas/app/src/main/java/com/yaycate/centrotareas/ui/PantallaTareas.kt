@@ -57,8 +57,9 @@ fun PantallaTareas(vm: TareasViewModel) {
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    // TODO Pasos 1 a 4: botones Tarea larga (MAL), Tarea larga,
-                    // Iniciar y Cancelar, y la barra de progreso
+                    Button(onClick = { vm.tareaLargaMala() }) {
+                        Text("Tarea larga (MAL)")
+                    }
                     Text(mensaje)
                 }
             }
@@ -70,7 +71,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    // TODO Paso 5: campo numérico, botones Contar y Cancelar, y resultado
+                    // Paso 5 pendiente
                 }
             }
 
@@ -81,7 +82,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    // TODO Pasos 6 y 7: botones Una por una y A la vez, y el resultado
+                    // Pasos 6 y 7 pendientes
                 }
             }
         }
