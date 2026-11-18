@@ -1,6 +1,8 @@
 package com.yaycate.centrotareas.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,6 +39,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.yaycate.centrotareas.model.CargaUi
 import com.yaycate.centrotareas.model.PrimosUi
+import com.yaycate.centrotareas.ui.theme.DegradadoAzul
 import com.yaycate.centrotareas.viewmodel.TareasViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,13 +59,15 @@ fun PantallaTareas(vm: TareasViewModel) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("CentroTareas") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+            Box(modifier = Modifier.fillMaxWidth().background(DegradadoAzul)) {
+                TopAppBar(
+                    title = { Text("CentroTareas") },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = Color.White
+                    )
                 )
-            )
+            }
         }
     ) { padding ->
         Column(
