@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
-private const val LIMITE_POR_DEFECTO_MS = 15_000L
+private const val LIMITE_POR_DEFECTO_MS = 20_000L
 private const val REINTENTOS = 3
 
 class TareasViewModel(private val repo: TareasRepository) : ViewModel() {

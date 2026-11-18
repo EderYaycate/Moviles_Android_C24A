@@ -156,7 +156,7 @@ fun PantallaTareas(vm: TareasViewModel) {
                     )
                     Text("Tiempo máximo")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(2000L, 5000L, 15000L).forEach { ms ->
+                        listOf(2000L, 5000L, 20000L).forEach { ms ->
                             FilterChip(
                                 selected = limiteMs == ms,
                                 onClick = { vm.cambiarLimite(ms) },
